@@ -21,6 +21,28 @@ As of right now, only I am using this model. However I want to make the model av
 **What problem it solves?**
 Fantasy football requires forecasting inherently noisy weekly player output. Existing "expert rankings" are often qualitative and non-reproducible. This project's problem statement is narrower and more rigorous: given only pre-game, publicly available usage and situational data, how accurately can a statistical/ML model predict a WR's next-week fantasy output — while being disciplined about not leaking future information into the prediction.
 
+## Repo Structure
+
+This repo is a fork of `wide-receiver-predictor` with a web layer added.
+
+- `src/wr_predictor/` — the ML pipeline. Packaged via `pyproject.toml`; import
+  it as `wr_predictor` (e.g. `from wr_predictor.dataset_builder import ...`).
+  Install with `pip install -e .` (add `[webapp]` for the Flask deps).
+- `tests/` — pipeline unit tests. Run `pytest` from the repo root.
+- `notebooks/` — experimentation only.
+- `backend/` — Flask API. Thin `routes.py` over three services
+  (`wr_pipeline_service`, `model_service`, `projection_service`), plus
+  `training/train_model.py` (offline trainer) and `artifacts/` (trained model).
+  `backend/tests/` has its own suite.
+- `frontend/` — React + Vite dashboard. Talks to the backend over HTTP only.
+
+The web app must not reimplement pipeline logic — it imports `wr_predictor`
+and consumes its output. Keep the pipeline unaware of Flask.
+
+Open follow-up: `src/wr_predictor/model.py` and `backend/training/train_model.py`
+are two different "first model" implementations that give different numbers.
+Reconcile into one canonical implementation before relying on either.
+
 ## Behavior Guidelines
 - Claude should limit assumptions to a maximum degree. 
 - Every addition or removal should be accompanied by reasoning. 
