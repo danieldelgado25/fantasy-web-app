@@ -1,0 +1,262 @@
+/* App.css
+   =======
+   Design language: a "broadcast stat sheet under the lights" rather than a
+   generic SaaS dashboard — dark turf-toned background, condensed display
+   type for the rank numbers (scoreboard feel), monospace tabular figures for
+   the projection column so points align vertically like a real stat sheet.
+   One accent color (amber) used sparingly: the active/important numbers
+   only, not decoration.
+*/
+
+:root {
+  --bg: #0f1712;
+  --surface: #16211a;
+  --text-primary: #edefea;
+  --text-secondary: #8fa08d;
+  --accent: #f2c14e;
+  --accent-dim: #7a6a35;
+  --divider: #2a362c;
+  --error: #e0705c;
+  --good: #7fbf8f;
+
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+/* ---------- Header ---------- */
+
+.header__title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--divider);
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.header__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 2.5rem;
+  letter-spacing: 0.01em;
+  margin: 0;
+  line-height: 1;
+}
+
+.header__subtitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* ---------- Filter bar ---------- */
+
+.filter-bar {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.filter-bar__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.filter-bar__label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.filter-bar select {
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--divider);
+  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  min-width: 8rem;
+}
+
+.filter-bar select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* ---------- Model info banner ---------- */
+
+.model-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  border-radius: 4px;
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 1.75rem;
+}
+
+.model-banner__stat strong {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+.model-banner__divider {
+  color: var(--divider);
+}
+
+.model-banner__verdict {
+  margin-left: auto;
+  font-size: 0.78rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 3px;
+}
+
+.model-banner__verdict--good {
+  color: var(--good);
+  background: rgba(127, 191, 143, 0.12);
+}
+
+.model-banner__verdict--bad {
+  color: var(--error);
+  background: rgba(224, 112, 92, 0.12);
+}
+
+/* ---------- Projections list ---------- */
+
+.projections-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--divider);
+}
+
+.projections-list__row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--divider);
+}
+
+.projections-list__rank {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  width: 2ch;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.projections-list__player {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.projections-list__name {
+  font-weight: 500;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.projections-list__meta {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.projections-list__vs,
+.projections-list__asof {
+  color: var(--text-secondary);
+}
+
+.team-badge {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-primary);
+}
+
+.team-badge--muted {
+  color: var(--text-secondary);
+}
+
+.projections-list__points {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+/* ---------- Status / empty / error states ---------- */
+
+.status-line {
+  color: var(--text-secondary);
+  padding: 1.5rem 0;
+}
+
+.empty-state,
+.error-state {
+  padding: 2rem 0;
+  color: var(--text-secondary);
+}
+
+.error-state {
+  color: var(--error);
+}
+
+.empty-state__hint,
+.error-state__hint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.error-state__hint code {
+  font-family: var(--font-mono);
+  background: var(--surface);
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 480px) {
+  .header__title {
+    font-size: 2rem;
+  }
+
+  .projections-list__points {
+    font-size: 1.1rem;
+  }
+}
