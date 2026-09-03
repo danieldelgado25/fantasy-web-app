@@ -1,0 +1,17 @@
+# Web framework
+flask
+flask-cors
+
+# ML / data — versions kept unpinned to match wide-receiver-predictor's own
+# requirements.txt; pin these together if you start caring about reproducible
+# environments across both repos.
+polars
+pandas
+scikit-learn
+joblib
+
+# Needed transitively because training/train_model.py imports the
+# wide-receiver-predictor pipeline, which itself depends on nflreadpy.
+nflreadpy
+
+pytest

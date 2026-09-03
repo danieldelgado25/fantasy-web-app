@@ -1,0 +1,97 @@
+{
+  "feature_cols": [
+    "is_home",
+    "is_dome",
+    "spread_line",
+    "total_line",
+    "temp",
+    "wind",
+    "ppr_points",
+    "ppr_points_prev_week",
+    "ppr_points_minus_roll3",
+    "rec_prev_week",
+    "targets_prev_week",
+    "rec_yds_prev_week",
+    "rec_td_prev_week",
+    "target_share_prev_week",
+    "air_yards_share_prev_week",
+    "wopr_prev_week",
+    "receiving_air_yards_prev_week",
+    "ppr_points_rolling_3",
+    "ppr_points_rolling_5",
+    "rec_yds_rolling_3",
+    "rec_yds_rolling_5",
+    "targets_rolling_3",
+    "targets_rolling_5",
+    "target_share_rolling_3",
+    "target_share_rolling_5",
+    "air_yards_share_rolling_3",
+    "air_yards_share_rolling_5",
+    "wopr_rolling_3",
+    "wopr_rolling_5",
+    "receiving_air_yards_rolling_3",
+    "receiving_air_yards_rolling_5"
+  ],
+  "target_col": "next_week_ppr_points",
+  "baseline_col": "ppr_points_rolling_3",
+  "trained_at": "2026-09-02T04:22:36.469684+00:00",
+  "train_seasons": [
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021
+  ],
+  "val_seasons": [
+    2022
+  ],
+  "test_seasons": [
+    2023,
+    2024
+  ],
+  "best_alpha": 10.0,
+  "metrics": {
+    "ridge": {
+      "train": {
+        "mae": 5.0288,
+        "rmse": 6.6469,
+        "r2": 0.2837,
+        "n": 12701
+      },
+      "val": {
+        "mae": 4.9552,
+        "rmse": 6.4749,
+        "r2": 0.2909,
+        "n": 2255
+      },
+      "test": {
+        "mae": 4.8124,
+        "rmse": 6.4633,
+        "r2": 0.3143,
+        "n": 4404
+      }
+    },
+    "baseline_rolling_avg": {
+      "train": {
+        "mae": 5.403,
+        "rmse": 7.3128,
+        "r2": 0.1329,
+        "n": 12701
+      },
+      "val": {
+        "mae": 5.3039,
+        "rmse": 7.199,
+        "r2": 0.1235,
+        "n": 2255
+      },
+      "test": {
+        "mae": 5.1681,
+        "rmse": 7.0997,
+        "r2": 0.1726,
+        "n": 4404
+      }
+    },
+    "beats_baseline_on_test_rmse": true
+  }
+}
