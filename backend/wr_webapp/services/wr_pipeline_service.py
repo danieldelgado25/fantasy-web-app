@@ -59,13 +59,13 @@ _cache_lock = threading.Lock()  # Flask's dev server + gunicorn workers can be m
 def get_weekly_dataset(seasons: Iterable[int]) -> pl.DataFrame:
     """
     Return the WR weekly feature dataset for the given seasons, built via the
-    wide-receiver-predictor pipeline (schedule context, lag/rolling features,
+    `wr_predictor` pipeline (schedule context, lag/rolling features,
     next_week_ppr_points target). Serves from an in-memory cache when possible.
 
-    `merge_ff_opportunity` is left False here — see train_model.py's docstring
-    for the schema-mismatch bug in that join. The serving path must build
-    features identically to the training path, so this stays in sync with how
-    the model was trained.
+    Feature-building args must match backend/training/train_model.py exactly --
+    the serving path has to reproduce the rows the model was trained on.
+    `merge_ff_opportunity` is left at its default (False) in both places;
+    flip it in both if the opponent-adjusted columns get enabled.
     """
     key = tuple(sorted(seasons))
 
@@ -77,11 +77,7 @@ def get_weekly_dataset(seasons: Iterable[int]) -> pl.DataFrame:
             return cached
 
     logger.info("wr_pipeline_service: cache miss for seasons=%s, building dataset...", key)
-    df = build_training_dataset(
-        seasons=list(key),
-        min_games_for_player=0,
-        merge_ff_opportunity=False,
-    )
+    df = build_training_dataset(seasons=list(key), min_games_for_player=0)
 
     with _cache_lock:
         _dataset_cache[key] = df
