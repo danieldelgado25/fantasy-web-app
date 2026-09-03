@@ -39,9 +39,9 @@ This repo is a fork of `wide-receiver-predictor` with a web layer added.
 The web app must not reimplement pipeline logic — it imports `wr_predictor`
 and consumes its output. Keep the pipeline unaware of Flask.
 
-Open follow-up: `src/wr_predictor/model.py` and `backend/training/train_model.py`
-are two different "first model" implementations that give different numbers.
-Reconcile into one canonical implementation before relying on either.
+All modeling logic (split, pipeline, alpha selection, metrics) lives in
+`src/wr_predictor/model.py`. `backend/training/train_model.py` and `main.py`
+are thin callers — don't reintroduce a second implementation in either.
 
 ## Behavior Guidelines
 - Claude should limit assumptions to a maximum degree. 

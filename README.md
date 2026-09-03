@@ -101,17 +101,28 @@ in-memory cache), `model_service` (loads/serves the trained artifact), and
 `projection_service` ("as of" row selection and filtering). Rationale is in
 each module's docstring.
 
-**Retraining.** `python backend/training/train_model.py` rebuilds the dataset
-via the pipeline, trains Ridge with an alpha grid on a time-based split,
-compares against a rolling-3-week-average baseline, and writes
-`backend/artifacts/wr_model_v1.joblib` (+ `.metrics.json`). Re-run it when a new
-week of NFL data lands or the pipeline's feature engineering changes.
+**Model.** All modeling logic lives in `src/wr_predictor/model.py` (feature
+selection, the `require="rolling_3"` null-drop that keeps dome-team players,
+the impute → scale → Ridge pipeline, alpha selection, metrics).
+`backend/training/train_model.py` is a thin CLI over it: build the dataset,
+call those helpers over a season split, write
+`backend/artifacts/wr_model_v1.joblib` (+ `.metrics.json`). `main.py` uses the
+same helpers, so its numbers and the shipped artifact stay comparable.
 
-**Known caveat.** Two "first model" implementations currently disagree
-numerically: `src/wr_predictor/model.py` (drop-null rows, single Ridge fit) and
-`backend/training/train_model.py` (median-impute, scale, alpha grid,
-train/val/test). Reconciling them into one canonical implementation — and
-regenerating the vendored artifact from it — is tracked as follow-up work.
+**Performance** (test = 2024–2025, train 2016–2022 / val 2023):
+
+| | Test MAE | Test RMSE | Test R² |
+|---|---|---|---|
+| Rolling-3-week average (baseline) | 5.10 | 6.95 | 0.171 |
+| **Ridge regression (served model)** | **4.80** | **6.40** | **0.299** |
+
+Full metrics are in `backend/artifacts/wr_model_v1.metrics.json` and live at
+`/api/model-info`.
+
+**Retraining.** Re-run `python backend/training/train_model.py` when a new NFL
+season lands or the pipeline's feature engineering changes. Roll
+`TRAIN_SEASONS` / `VAL_SEASONS` / `TEST_SEASONS` forward so the test set stays
+a genuine future holdout.
 
 ## Why Wide Receivers?
 

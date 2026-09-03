@@ -94,6 +94,10 @@ def predict(features: pd.DataFrame) -> pd.Series:
             "these rows has drifted from the one used at training time."
         )
 
-    X = features[feature_cols]  # explicit selection + ordering, see module docstring
+    # Explicit selection + ordering, then hand sklearn a bare NumPy array:
+    # the pipeline was fitted on arrays (wr_predictor.model.feature_matrix), so
+    # passing a named DataFrame here only triggers a "fitted without feature
+    # names" warning. Column order is already guaranteed correct above.
+    X = features[feature_cols].to_numpy()
     predictions = artifact["model"].predict(X)
     return pd.Series(predictions, index=features.index, name="predicted_next_week_ppr")
