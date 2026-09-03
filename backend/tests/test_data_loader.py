@@ -1,6 +1,6 @@
 import polars as pl
 
-from src.wr_predictor.data_loader import (
+from wr_predictor.data_loader import (
     _load_cached,
     _load_seasons_cached,
     _read_or_fetch,

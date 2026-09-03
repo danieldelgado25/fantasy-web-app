@@ -4,3 +4,5 @@ scikit-learn
 jupyter
 matplotlib
 pytest
+flask
+flask-cors

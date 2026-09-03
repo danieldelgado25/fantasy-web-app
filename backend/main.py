@@ -1,7 +1,7 @@
 import sys
 
-from src.wr_predictor.dataset_builder import build_training_dataset
-from src.wr_predictor.model import (
+from wr_predictor.dataset_builder import build_training_dataset
+from wr_predictor.model import (
     evaluate_baseline,
     get_feature_columns,
     prepare_model_frame,

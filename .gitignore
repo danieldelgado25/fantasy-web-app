@@ -193,15 +193,19 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-# Project data artifacts
-data/raw/*
-!data/raw/.gitkeep
+# Project data artifacts (owned by backend/ — pipeline runs with backend/ as cwd)
+backend/data/raw/*
+!backend/data/raw/.gitkeep
 
-data/processed/*
-!data/processed/.gitkeep
+backend/data/processed/*
+!backend/data/processed/.gitkeep
 
-models/*
-!models/.gitkeep
+backend/models/*
+!backend/models/.gitkeep
+
+# frontend build output / deps
+frontend/node_modules/
+frontend/dist/
 
 # Local editor settings
 .vscode/

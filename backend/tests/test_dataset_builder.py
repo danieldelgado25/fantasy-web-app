@@ -1,7 +1,7 @@
 import polars as pl
 
-from src.wr_predictor import data_loader
-from src.wr_predictor.dataset_builder import (
+from wr_predictor import data_loader
+from wr_predictor.dataset_builder import (
     _find_first_existing,
     _merge_ff_opportunity,
     _merge_schedule_context,

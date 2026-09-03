@@ -1,73 +1,71 @@
-# wide-receiver-predictor
+# fantasy-web-app
 
-Uses statistics, probability, and data analytics to forecast wide receiver fantasy football performance — or at least test how close we can get in a sport driven by chaos, variance, injuries, and small weekly sample sizes.
+A fantasy sports projection platform, built around statistics, probability, and machine learning rather than qualitative "expert rankings." The long-term goal is a web application that serves reproducible, pre-game fantasy projections across multiple sports.
 
-Predicting fantasy football output is difficult because weekly production is influenced by far more than raw talent alone. Matchups, target competition, quarterback play, injuries, touchdowns, game script, and randomness can all swing results from one week to the next.
-
-This project does not aim to guarantee perfect predictions. The goal is to explore what can realistically be learned from historical NFL data, engineered features, and statistical modeling, with a specific focus on wide receivers. Since WR performance is heavily shaped by volume, efficiency, and situational context, it provides a strong use case for combining sports analytics with machine learning.
+This repository is the successor to [`wide-receiver-predictor`](https://github.com/danieldelgado25/wide-receiver-predictor), whose data pipeline and modeling code now live here as the project's foundation (`backend/wr_predictor/`). The repo is split into a `backend/` (pipeline + API) and a planned `frontend/` (React).
 
 ## Project Goal
 
-Build a training-ready dataset and prediction pipeline that can estimate future fantasy performance for wide receivers based on past NFL usage and production trends.
+Predict a wide receiver's fantasy football production (PPR points) for their next game, using only information that would have been available before that game was played — then, over time, expand the same discipline to more positions and more sports, and expose the results through a public web app.
 
-The project is centered around:
-- collecting historical weekly WR data
-- engineering pregame features
-- defining a fantasy-relevant target variable
-- training and evaluating predictive models
-- comparing results against the reality of football variance
+Core commitments carried over from the original project:
+- no data leakage — every feature must be knowable pre-game
+- reproducible, code-based projections instead of qualitative rankings
+- honesty about the limits of predicting a noisy, variance-driven sport
 
-## Data Direction
+## Current Status
 
-This project will use `nflreadpy` as the main Python data backbone.
+- **Data pipeline & model (NFL, WR):** functional. Pulls data via `nflreadpy`, filters to wide receivers, engineers pre-game features, builds a `next_week_ppr_points` target, and trains/evaluates models (baseline rolling average vs. Ridge regression).
+- **Backend API:** skeleton only. A Flask app (`backend/api/`) exists with a health check route; the projections route is a stub — it isn't wired to the pipeline yet because there's no saved model artifact or single-row inference function to call.
+- **Frontend:** not started. React was chosen as the framework; no code yet, and no npm packages have been installed.
+- **Rest-of-season rankings, player news monitor:** deferred — see [ROADMAP.md](ROADMAP.md).
+- **Other sports/positions:** not started. NFL WR remains the sole focus until the pipeline and app are proven out here.
 
-Fantasy-specific enrichment libraries from the ffverse ecosystem may also be incorporated later where useful.
+## Data Pipeline
 
-Possible future supplements include:
-- `ffverse`
-- `ffopportunity`
+Main data source is `nflreadpy`. Fantasy-specific enrichment libraries from the ffverse ecosystem (`ffverse`, `ffopportunity`) may be incorporated later for opportunity-based metrics, but `nflreadpy` remains the primary workflow.
 
-These may help add fantasy-relevant context such as opportunity-based metrics, but the main data workflow will be built around `nflreadpy`.
-
-## Modeling Approach
-
-The planned dataset structure is:
-
+Dataset structure:
 - one row per wide receiver per week
-- only features that would be known before the predicted game
-- a target such as next-week fantasy points
+- only pre-game features
+- target: next-week fantasy points
 
-This setup is intended to avoid data leakage and create a cleaner foundation for machine learning.
-
-Examples of future feature categories may include:
+Feature categories in use or planned:
 - previous week fantasy points
-- rolling averages over recent games (noting greater volatility in certain players)
+- rolling averages over recent games
 - targets, receptions, air yards, and touchdowns
 - target share and usage trends
 - team offensive environment
 - opponent defensive context
 - game location and other situational factors
 
-## Development Structure
+## Repository Structure
 
-Project logic should live in reusable Python modules under `src/`.
+```
+backend/
+  wr_predictor/   # pipeline: data loading, filtering, features, targets, model training/eval
+  api/             # Flask app — thin HTTP layer, imports wr_predictor, no modeling logic
+  tests/           # unit tests for wr_predictor
+  main.py          # builds datasets, runs baseline-vs-Ridge comparison
+  requirements.txt
+frontend/          # React app (planned, not yet scaffolded)
+notebooks/          # experimentation only, not a home for reusable logic
+```
 
-Jupyter notebooks are reserved for:
-- experimentation
-- feature exploration
-- model training
-- evaluation
-- visualization
+`wr_predictor` and `api` are kept as separate packages under `backend/` on purpose: the pipeline has no concept of HTTP, and the API is a thin, replaceable adapter over it.
 
-That separation keeps the project cleaner and makes it easier to reuse code outside of notebooks.
+Run the pipeline/tests/API with `backend/` as the working directory (e.g. `cd backend && python main.py`, `cd backend && python -m pytest tests/`, `cd backend && python -m api.app`), after `pip install -r backend/requirements.txt`.
 
-## Why Wide Receivers?
+## Roadmap
 
-Wide receivers are one of the most volatile fantasy positions, which makes them both frustrating and interesting to study. A receiver can post a huge week from a handful of targets or disappear despite strong usage. That makes WR prediction a good test bed for exploring:
-- probability and uncertainty
-- variance in sports performance
-- feature engineering
-- model limitations in noisy real-world data
+1. Continue maturing the NFL WR pipeline and model.
+2. Build the web app: React frontend (deployed to Vercel) + Flask backend/API (deployed separately — see [ROADMAP.md](ROADMAP.md) for why). Add model persistence and wire the `/api/projections` route to real inference.
+3. Weekly rankings (sort projections — no new model required).
+4. Extend modeling to additional NFL positions.
+5. Extend to additional sports.
+6. Open the app up for public use.
+
+Deferred, not yet scheduled: rest-of-season rankings and a player news monitor — see [ROADMAP.md](ROADMAP.md).
 
 ## Disclaimer
 
