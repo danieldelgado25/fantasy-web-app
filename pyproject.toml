@@ -1,0 +1,55 @@
+# pyproject.toml
+# ==============
+# Makes the WR prediction pipeline an installable package (`wr_predictor`)
+# instead of something that only imports when the current working directory
+# happens to be the repo root.
+#
+# WHY THIS EXISTS
+# ---------------
+# The web app in backend/ needs to call this pipeline (build_training_dataset,
+# the model.py helpers). Before this file, the only way to do that was a
+# sys.path hack pointing at the repo root, which broke every time the caller
+# ran from a different directory. With this file, `pip install -e .` from the
+# repo root puts `wr_predictor` on the import path for good, and every entry
+# point -- tests, notebooks, main.py, the Flask app -- imports it the same way:
+#
+#     from wr_predictor.dataset_builder import build_training_dataset
+#
+# The package lives under src/ (the "src layout"), so an accidental
+# `import wr_predictor` from the repo root can't shadow the installed package
+# with the source tree.
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wr-predictor"
+version = "0.1.0"
+description = "NFL wide receiver next-week PPR fantasy point prediction pipeline."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+
+# Runtime dependencies of the pipeline itself. Mirrors requirements.txt minus
+# the dev/notebook-only tools (those moved to optional groups below). Kept
+# unpinned to match the project's existing convention; pin here first if
+# reproducible environments start mattering.
+dependencies = [
+    "nflreadpy",
+    "polars",
+    "scikit-learn",
+]
+
+[project.optional-dependencies]
+# Exploratory notebooks under notebooks/.
+notebooks = ["jupyter", "matplotlib"]
+# Test suite under tests/.
+dev = ["pytest"]
+# The Flask + serving layer under backend/. Isolated here so installing the
+# pipeline alone doesn't pull in a web stack. See backend/requirements.txt for
+# the same list with per-line rationale.
+webapp = ["flask", "flask-cors", "pandas", "joblib"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

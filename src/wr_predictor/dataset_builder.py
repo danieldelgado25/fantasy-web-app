@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import polars as pl
 
-from src.wr_predictor import data_loader, features, filters, targets
+from wr_predictor import data_loader, features, filters, targets
 
 """
 File imported by main.py to build the training dataset.

@@ -1,6 +1,6 @@
 import polars as pl
 
-from src.wr_predictor.filters import (
+from wr_predictor.filters import (
     drop_special_teams_only_rows,
     filter_wide_receivers,
     select_wr_columns,

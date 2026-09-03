@@ -1,7 +1,7 @@
 import polars as pl
 import pytest
 
-from src.wr_predictor.targets import add_next_week_target, drop_rows_without_target
+from wr_predictor.targets import add_next_week_target, drop_rows_without_target
 
 
 """

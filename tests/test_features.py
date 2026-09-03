@@ -1,6 +1,6 @@
 import polars as pl
 
-from src.wr_predictor.features import add_basic_fantasy_points
+from wr_predictor.features import add_basic_fantasy_points
 
 
 """
