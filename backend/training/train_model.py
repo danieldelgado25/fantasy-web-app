@@ -13,17 +13,16 @@ to disk as an artifact. The API then just loads that artifact and calls
 *training pipeline* and an online *inference/serving* pipeline, joined by a
 versioned artifact file.
 
-This script is deliberately a thin wrapper around the existing
-`wide-receiver-predictor` repo's pipeline (`dataset_builder`, `features`,
-`targets`). We are NOT reimplementing feature engineering here — we import and
-reuse it, exactly as the project's notebook (`02_ML_exploration.ipynb`) does.
-That's the "plug into the existing pipeline" requirement: this repo owns the
-web app, the other repo owns the data/ML pipeline.
+This script is deliberately a thin wrapper around this repo's `wr_predictor`
+pipeline package (`dataset_builder`, `features`, `targets`). We are NOT
+reimplementing feature engineering here — we import and reuse it, exactly as
+`notebooks/02_ML_exploration.ipynb` does. The web app (backend/) and the ML
+pipeline (src/wr_predictor/) live in the same repo but stay cleanly separated:
+the pipeline knows nothing about Flask; this script only consumes its output.
 
 WHAT THIS SCRIPT DOES
 ----------------------
-1. Locates the `wide-receiver-predictor` source (see `_add_wr_predictor_to_path`)
-   and imports its `build_training_dataset` function.
+1. Imports `build_training_dataset` from the `wr_predictor` package.
 2. Builds a WR weekly dataset the same way the notebook does (schedule context,
    lag features, rolling averages, `next_week_ppr_points` target).
 3. Splits by *season*, not randomly — this matters a lot for time-series sports
@@ -44,16 +43,14 @@ USAGE
 -----
     python training/train_model.py
 
-Environment variable `WR_PREDICTOR_PATH` can point at a local checkout of
-https://github.com/danieldelgado25/wide-receiver-predictor if it isn't a
-sibling directory of this repo (see config.py for the default resolution).
+Requires the pipeline package to be installed (`pip install -e .` from the
+repo root, or `pip install -e .[webapp]`). That is what makes
+`import wr_predictor` resolve here.
 """
 
 from __future__ import annotations
 
 import json
-import os
-import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -67,17 +64,13 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 # --------------------------------------------------------------------------
-# Locate and import the wide-receiver-predictor pipeline
+# Import the wide-receiver-predictor pipeline
 # --------------------------------------------------------------------------
-# We don't copy-paste dataset_builder/features/targets into this repo. Instead
-# we add the *other* repo's root to sys.path at runtime and import it directly.
-# This keeps this web app repo honest about the fact that it depends on that
-# repo's pipeline logic, rather than silently drifting out of sync with it.
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # backend/ root
-from wr_webapp.config import add_wr_predictor_to_path  # noqa: E402
-
-add_wr_predictor_to_path()
-from src.wr_predictor.dataset_builder import build_training_dataset  # noqa: E402
+# The pipeline is this repo's own `wr_predictor` package (see pyproject.toml),
+# not a copy of dataset_builder/features/targets living in the web app. Import
+# it directly; `pip install -e .` is what puts it on the path. No sys.path
+# juggling and no separate checkout to locate.
+from wr_predictor.dataset_builder import build_training_dataset
 
 # --------------------------------------------------------------------------
 # Config

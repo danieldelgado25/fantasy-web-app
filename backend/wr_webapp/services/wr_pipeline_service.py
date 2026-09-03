@@ -44,14 +44,11 @@ from typing import Iterable
 
 import polars as pl
 
-from wr_webapp.config import DATASET_CACHE_MAX_ENTRIES, add_wr_predictor_to_path
+from wr_predictor.dataset_builder import build_training_dataset
+
+from wr_webapp.config import DATASET_CACHE_MAX_ENTRIES
 
 logger = logging.getLogger(__name__)
-
-# Resolve and register the wide-receiver-predictor path once, at import time,
-# so every function below can assume `src.wr_predictor` is importable.
-add_wr_predictor_to_path()
-from src.wr_predictor.dataset_builder import build_training_dataset  # noqa: E402
 
 # season-tuple -> polars.DataFrame. OrderedDict gives us cheap LRU-style
 # eviction (move_to_end on access, popitem(last=False) to evict oldest).
