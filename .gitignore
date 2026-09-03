@@ -197,12 +197,13 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-# Project data artifacts
-data/raw/*
-!data/raw/.gitkeep
+# Project data artifacts. The leading "**/" also catches the parquet cache
+# data_loader writes when the pipeline runs with cwd=backend/ (backend/data/).
+**/data/raw/*
+!**/data/raw/.gitkeep
 
-data/processed/*
-!data/processed/.gitkeep
+**/data/processed/*
+!**/data/processed/.gitkeep
 
 models/*
 !models/.gitkeep
