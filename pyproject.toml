@@ -49,7 +49,9 @@ dev = ["pytest"]
 # The Flask + serving layer under backend/. Isolated here so installing the
 # pipeline alone doesn't pull in a web stack. See backend/requirements.txt for
 # the same list with per-line rationale.
-webapp = ["flask", "flask-cors", "pandas", "joblib"]
+# pyarrow: required by polars.DataFrame.to_pandas() in projection_service;
+# modern polars no longer bundles it.
+webapp = ["flask", "flask-cors", "pandas", "pyarrow", "joblib"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

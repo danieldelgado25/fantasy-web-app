@@ -1,17 +1,25 @@
+# Canonical dependency declaration is the repo-root pyproject.toml. Prefer
+# installing from there so the pipeline package is picked up too:
+#
+#     pip install -e ".[webapp]"        # from the repo root
+#     pip install -e ".[webapp,dev]"    # adds pytest for the test suites
+#
+# This flat list mirrors pyproject's [webapp] extra plus the pipeline's own
+# runtime deps, for anyone installing from backend/ directly. It does NOT
+# install the wr_predictor package itself — run `pip install -e .` for that.
+# Versions unpinned by project convention.
+
 # Web framework
 flask
 flask-cors
 
-# ML / data — versions kept unpinned to match wide-receiver-predictor's own
-# requirements.txt; pin these together if you start caring about reproducible
-# environments across both repos.
-polars
+# Model loading / serving, and the polars<->pandas bridge used in
+# projection_service (pyarrow backs polars.DataFrame.to_pandas()).
 pandas
-scikit-learn
+pyarrow
 joblib
 
-# Needed transitively because training/train_model.py imports the
-# wide-receiver-predictor pipeline, which itself depends on nflreadpy.
+# Pipeline runtime deps (also declared as pyproject core dependencies).
+polars
+scikit-learn
 nflreadpy
-
-pytest
