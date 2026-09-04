@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from pathlib import Path
+
+import joblib
 import polars as pl
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_absolute_error, mean_squared_error
@@ -105,3 +108,32 @@ def train_and_evaluate_ridge(
         "mae": mean_absolute_error(y_validation, predictions),
         "rmse": mean_squared_error(y_validation, predictions) ** 0.5,
     }
+
+
+def save_model(model: Ridge, feature_columns: list[str], path: str) -> None:
+    """
+    Persist a trained model together with the exact feature column order it
+    was fit on, so a later inference call can't silently pass columns in the
+    wrong order or omit one.
+    """
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    joblib.dump({"model": model, "feature_columns": feature_columns}, path)
+
+
+def load_model(path: str) -> tuple[Ridge, list[str]]:
+    """
+    Load a model artifact written by save_model.
+    Returns (model, feature_columns) as a pair, matching save_model's input.
+    """
+    artifact = joblib.load(path)
+    return artifact["model"], artifact["feature_columns"]
+
+
+def predict_next_week(model: Ridge, feature_columns: list[str], feature_row: pl.DataFrame) -> float:
+    """
+    Predict next_week_ppr_points for a single player from one feature row
+    (e.g. their latest snapshot row from build_latest_snapshot). Selects
+    feature_columns explicitly so column order always matches training.
+    """
+    x = feature_row.select(feature_columns).to_numpy()
+    return float(model.predict(x)[0])
