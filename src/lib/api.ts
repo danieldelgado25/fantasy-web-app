@@ -47,7 +47,7 @@ const MOCK_PROJECTIONS: Record<string, Projection> = {
 };
 
 function getBaseUrl(): string | undefined {
-  return import.meta.env.VITE_API_BASE_URL;
+  return import.meta.env["VITE_API_BASE_URL"];
 }
 
 export async function fetchPlayers(): Promise<Player[]> {
