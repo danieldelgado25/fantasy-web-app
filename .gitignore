@@ -197,6 +197,9 @@ cython_debug/
 backend/data/raw/*
 !backend/data/raw/.gitkeep
 
+# Same raw-pull cache, but written here when notebooks run with notebooks/ as cwd
+notebooks/data/
+
 backend/data/processed/*
 !backend/data/processed/.gitkeep
 
