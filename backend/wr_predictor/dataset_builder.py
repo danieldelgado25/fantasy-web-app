@@ -95,6 +95,75 @@ def build_training_dataset(
     return weekly
 
 
+def build_latest_snapshot(
+    seasons: list[int],
+    position: str = "WR",
+    merge_ff_opportunity: bool = False,
+    output_path: str | None = None,
+) -> pl.DataFrame:
+    """
+    Build one row per player: their most recent game's feature values, with
+    no next_week_ppr_points (it hasn't been played yet). This is the row
+    build_training_dataset always drops, because training needs a known
+    target — inference needs exactly that dropped row. Mirrors
+    build_training_dataset's pipeline up through feature creation, then
+    diverges: keep the latest row per player instead of filtering by target.
+    No min_games_for_player filter here on purpose — a live projection
+    should still be produced for a rookie or a player back from injury
+    who wouldn't clear a minimum-games bar this season.
+    """
+    weekly = data_loader.load_player_weekly_stats(seasons)
+    players = data_loader.load_players()
+
+    weekly = _normalize_receiving_columns(weekly)
+    weekly = _merge_schedule_context(weekly, seasons)
+
+    player_col = _find_first_existing(weekly.columns, ["player_id", "gsis_id"])
+    if player_col is None:
+        raise ValueError("Weekly stats must have player_id or gsis_id.")
+    if "position" not in weekly.columns and not players.is_empty():
+        pos_col = _find_first_existing(players.columns, ["position", "pos"])
+        id_in_players = _find_first_existing(players.columns, ["player_id", "gsis_id"])
+        if pos_col and id_in_players:
+            players = players.select([id_in_players, pos_col]).unique()
+            if pos_col != "position":
+                players = players.rename({pos_col: "position"})
+            weekly = weekly.join(
+                players,
+                left_on=player_col,
+                right_on=id_in_players,
+                how="inner",
+            )
+    if "position" in weekly.columns:
+        weekly = weekly.filter(pl.col("position") == position)
+
+    weekly = filters.drop_special_teams_only_rows(weekly)
+    weekly = features.add_basic_fantasy_points(weekly)
+    weekly = targets.add_next_week_target(weekly)
+    weekly = features.add_lag_features(weekly)
+    weekly = features.add_rolling_features(weekly)
+
+    ff_extra_cols: list[str] = []
+    if merge_ff_opportunity:
+        weekly, ff_extra_cols = _merge_ff_opportunity(weekly, seasons)
+
+    season_col = _find_first_existing(weekly.columns, ["season"])
+    week_col = _find_first_existing(weekly.columns, ["week"])
+    latest = (
+        weekly.sort([player_col, season_col, week_col])
+        .group_by(player_col, maintain_order=True)
+        .last()
+    )
+
+    latest = features.select_model_columns(latest, extra_feature_cols=ff_extra_cols)
+
+    if output_path:
+        os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
+        latest.write_csv(output_path)
+
+    return latest
+
+
 def _normalize_receiving_columns(data_frame: pl.DataFrame) -> pl.DataFrame:
     """Rename nflreadpy receiving columns to rec, rec_yds, rec_td if present."""
     renames = {}

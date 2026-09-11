@@ -6,6 +6,7 @@ from wr_predictor.dataset_builder import (
     _merge_ff_opportunity,
     _merge_schedule_context,
     _normalize_receiving_columns,
+    build_latest_snapshot,
     build_training_dataset,
 )
 
@@ -140,3 +141,34 @@ def test_build_training_dataset_orchestrates_pipeline(monkeypatch, tmp_path) -> 
     assert "next_week_ppr_points" in result.columns
     assert result["ppr_points"].to_list()[0] == 10.0  # 5*1 + 50*0.1 + 0*6
     assert (tmp_path / "out.csv").exists()
+
+
+def test_build_latest_snapshot_keeps_most_recent_row_per_player(monkeypatch, tmp_path) -> None:
+    # Player A: 5 games. Player B: 2 games — would be dropped by
+    # build_training_dataset's default min-games filter, but the snapshot
+    # has no such filter, so both players' latest rows should survive.
+    weekly = pl.DataFrame(
+        {
+            "player_id": ["A"] * 5 + ["B"] * 2,
+            "season": [2024] * 7,
+            "week": [1, 2, 3, 4, 5, 1, 2],
+            "position": ["WR"] * 7,
+            "rec": [5, 6, 7, 8, 9, 3, 4],
+            "rec_yds": [50, 60, 70, 80, 90, 30, 40],
+            "rec_td": [0, 1, 0, 1, 0, 0, 0],
+            "targets": [7, 8, 9, 10, 11, 5, 6],
+        }
+    )
+    monkeypatch.setattr(data_loader, "load_player_weekly_stats", lambda seasons: weekly)
+    monkeypatch.setattr(data_loader, "load_players", lambda: pl.DataFrame())
+
+    output_path = str(tmp_path / "snapshot.csv")
+    result = build_latest_snapshot(seasons=[2024], output_path=output_path)
+
+    # One row per player: A's week 5, B's week 2.
+    assert result.height == 2
+    assert set(result["player_id"].to_list()) == {"A", "B"}
+    assert result.filter(pl.col("player_id") == "A")["week"].to_list() == [5]
+    # No next-week game exists yet for either player's latest row.
+    assert result["next_week_ppr_points"].null_count() == 2
+    assert (tmp_path / "snapshot.csv").exists()
