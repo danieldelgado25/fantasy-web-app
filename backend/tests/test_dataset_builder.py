@@ -6,6 +6,7 @@ from wr_predictor.dataset_builder import (
     _merge_ff_opportunity,
     _merge_schedule_context,
     _normalize_receiving_columns,
+    attach_next_game_context,
     build_latest_snapshot,
     build_training_dataset,
 )
@@ -172,3 +173,57 @@ def test_build_latest_snapshot_keeps_most_recent_row_per_player(monkeypatch, tmp
     # No next-week game exists yet for either player's latest row.
     assert result["next_week_ppr_points"].null_count() == 2
     assert (tmp_path / "snapshot.csv").exists()
+
+
+def test_attach_next_game_context_replaces_stale_game_with_next_scheduled(monkeypatch) -> None:
+    # Player A's snapshot is stuck on their 2025 postseason game (opponent NE,
+    # week 22). Their team's next scheduled game in the schedule is 2026 week 1
+    # vs KC, which is what should end up in the row instead.
+    snapshot = pl.DataFrame(
+        {
+            "player_id": ["A"],
+            "team": ["SEA"],
+            "season": [2025],
+            "week": [22],
+            "opponent_team": ["NE"],
+            "spread_line": [-4.5],
+            "total_line": [45.5],
+            "is_home": [0],
+        }
+    )
+    schedules = pl.DataFrame(
+        {
+            "season": [2025, 2026],
+            "week": [22, 1],
+            "home_team": ["NE", "SEA"],
+            "away_team": ["SEA", "KC"],
+            "spread_line": [-4.5, 3.0],
+            "total_line": [45.5, 44.5],
+        }
+    )
+    monkeypatch.setattr(data_loader, "load_schedules", lambda seasons: schedules)
+
+    result = attach_next_game_context(snapshot, seasons=[2025, 2026])
+
+    assert result.height == 1
+    row = result.row(0, named=True)
+    assert row["season"] == 2026
+    assert row["week"] == 1
+    assert row["opponent_team"] == "KC"
+    assert row["is_home"] == 1
+    assert row["spread_line"] == 3.0
+
+
+def test_attach_next_game_context_drops_team_with_no_upcoming_game(monkeypatch) -> None:
+    snapshot = pl.DataFrame(
+        {"player_id": ["A"], "team": ["SEA"], "season": [2026], "week": [1], "opponent_team": ["KC"]}
+    )
+    # Only a game already in the past relative to the snapshot is scheduled.
+    schedules = pl.DataFrame(
+        {"season": [2025], "week": [22], "home_team": ["NE"], "away_team": ["SEA"]}
+    )
+    monkeypatch.setattr(data_loader, "load_schedules", lambda seasons: schedules)
+
+    result = attach_next_game_context(snapshot, seasons=[2025])
+
+    assert result.height == 0

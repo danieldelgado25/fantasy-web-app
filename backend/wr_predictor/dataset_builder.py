@@ -164,6 +164,58 @@ def build_latest_snapshot(
     return latest
 
 
+def attach_next_game_context(snapshot: pl.DataFrame, seasons: list[int]) -> pl.DataFrame:
+    """
+    Replace a snapshot's game-context columns (opponent_team, season, week,
+    is_home, is_dome, spread_line, total_line) with the player's team's next
+    scheduled game in `seasons`, instead of the last-played game's context
+    build_latest_snapshot otherwise carries forward. Without this, a snapshot
+    taken after a playoff run reports that playoff opponent as the "next"
+    matchup, which is wrong the moment a new season starts. `seasons` should
+    cover whatever season the upcoming game falls in (not necessarily the
+    same seasons the snapshot's stats were built from).
+    Drops any player whose team has no remaining scheduled game in `seasons`.
+    """
+    required = {"player_id", "team", "season", "week"}
+    if not required.issubset(snapshot.columns):
+        return snapshot
+
+    sched = data_loader.load_schedules(seasons)
+    if sched.is_empty():
+        return snapshot.clear()
+
+    keep = [c for c in ("season", "week", "home_team", "away_team", "spread_line", "total_line", "roof", "temp", "wind") if c in sched.columns]
+    sched = sched.select(keep)
+
+    home_view = sched.rename({"home_team": "team", "away_team": "opponent_team"}).with_columns(pl.lit(1).cast(pl.Int8).alias("is_home"))
+    away_view = sched.rename({"away_team": "team", "home_team": "opponent_team"}).with_columns(pl.lit(0).cast(pl.Int8).alias("is_home"))
+    team_schedule = pl.concat([home_view, away_view], how="diagonal_relaxed")
+
+    if "roof" in team_schedule.columns:
+        roof_str = pl.col("roof").cast(pl.Utf8).fill_null("")
+        team_schedule = team_schedule.with_columns(
+            roof_str.str.to_lowercase().str.contains("dome").cast(pl.Int8).alias("is_dome")
+        ).drop("roof")
+
+    team_schedule = team_schedule.rename({"season": "next_season", "week": "next_week"})
+
+    stale_cols = [c for c in ("opponent_team", "spread_line", "total_line", "is_home", "is_dome", "temp", "wind") if c in snapshot.columns]
+    anchor = snapshot.drop(stale_cols).rename({"season": "last_season", "week": "last_week"})
+
+    joined = anchor.join(team_schedule, on="team", how="left")
+    joined = joined.filter(
+        (pl.col("next_season") > pl.col("last_season"))
+        | ((pl.col("next_season") == pl.col("last_season")) & (pl.col("next_week") > pl.col("last_week")))
+    )
+    joined = (
+        joined.sort(["player_id", "next_season", "next_week"])
+        .group_by("player_id", maintain_order=True)
+        .first()
+    )
+
+    return joined.drop(["last_season", "last_week"]).rename({"next_season": "season", "next_week": "week"})
+
+
 def _normalize_receiving_columns(data_frame: pl.DataFrame) -> pl.DataFrame:
     """Rename nflreadpy receiving columns to rec, rec_yds, rec_td if present."""
     renames = {}
