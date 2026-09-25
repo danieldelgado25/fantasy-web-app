@@ -12,4 +12,8 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Pin the Vercel preset for builds run outside Lovable's own sandbox (e.g. Vercel's build
+  // pipeline). Lovable's own publish flow still force-pins Cloudflare via LOVABLE_NITRO_PRESET
+  // regardless of this, so the two deploy targets don't conflict.
+  nitro: { preset: "vercel" },
 });
