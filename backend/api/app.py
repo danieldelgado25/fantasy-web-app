@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 from flask import Flask
 from flask_cors import CORS
 
@@ -17,8 +19,11 @@ def create_app() -> Flask:
     app = Flask(__name__)
 
     # Frontend runs on a different origin (Vite dev server / Vercel domain),
-    # so the browser needs CORS enabled to call this API.
-    CORS(app)
+    # so the browser needs CORS enabled to call this API. FRONTEND_ORIGIN
+    # (comma-separated) scopes this to the real deployed frontend URL in
+    # production; unset (local dev) falls back to allowing any origin.
+    allowed_origins = os.environ.get("FRONTEND_ORIGIN")
+    CORS(app, origins=allowed_origins.split(",") if allowed_origins else "*")
 
     app.register_blueprint(api_blueprint)
     return app
