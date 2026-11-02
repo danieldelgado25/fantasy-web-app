@@ -18,7 +18,8 @@ Check items off as they land. Deployment waits on Phase 5, because proving the p
 - [x] Top 20 table and a static projections file
 
 ### Phase 3: Start live logging (deadline: before the Nov 5 kickoff)
-- [ ] Push `deploy-readiness` and merge it to `main`
+- [x] Push `deploy-readiness`
+- [ ] Merge it to `main`
 - [ ] Run the refresh workflow by hand from the GitHub Actions tab
 - [ ] Confirm its commit updated `backend/predictions/2026.csv` and `projections.json`
 - [ ] Confirm the next scheduled daily run works
@@ -26,12 +27,12 @@ Check items off as they land. Deployment waits on Phase 5, because proving the p
 Done when: week 9 predictions are on GitHub before kickoff and the daily job runs unattended.
 
 ### Phase 4: CI
-- [ ] Run backend tests, the frontend type check and the build on every push
-- [ ] Push a deliberately failing branch to prove CI catches it
-- [ ] Require CI to pass before merging to `main`
-- [ ] Write down what to do when CI or the daily job fails
+- [x] Run backend tests, the frontend type check and the build on every push
+- [x] Push a deliberately failing branch to prove CI catches it
+- [ ] Decide how to enforce CI before merging to `main`
+- [x] Write down what to do when CI or the daily job fails (see "When something fails")
 
-Done when: a broken change can't reach `main`.
+Done when: a broken change can't reach `main`. GitHub's required checks would also reject the daily job's direct commits to `main`, so turning them on as they are would stop the refresh.
 
 ### Phase 5: Prove the model (weeks 9-12 live, first verdict after Nov 30)
 - [ ] Review each finished week: predicted vs actual targets, catches and points
@@ -40,6 +41,27 @@ Done when: a broken change can't reach `main`.
 - [ ] Pass the bar on four finished live weeks: 20 of 20 predictions, MAE better than baseline, ranking at least 0.30
 
 Done when: `backend/predictions/2026_report.json` shows the live gate passed. A model change restarts the four-week window, so week 15 is the last week a new window can start this season.
+
+Findings so far, walking forward through 2023-2025 (54 weeks) for each week's top 20:
+
+| Ranking method | 2023-2025 | 2026 so far |
+|---|---|---|
+| Last 3 games average (baseline) | 0.162 | 0.186 |
+| Season points per game | 0.205 | 0.188 |
+| Current model | 0.241 | 0.268 |
+| Current model + next game's context | 0.258 | 0.297 |
+
+- The 0.30 bar looks miscalibrated: the current model's 4-week average ranges from 0.05 to 0.37 and reaches 0.30 in only 24% of windows, so passing would be largely luck. It beats the baseline's ranking in 80% of windows.
+- Next-game context (home or away, dome, game total, implied team total) is the only input that helped in both periods, by about 0.02-0.03, which isn't conclusive on its own.
+- Season form and opponent defense added almost nothing, and gradient boosting did no better than Ridge.
+
+## When something fails
+
+- **CI fails:** open the run from the commit's red X. For the backend, run `python -m pytest` from `backend/`. For the frontend, run `bunx tsc --noEmit` and `bun run build` from `frontend/`. Fix it on the branch and don't merge until it's green.
+- **The daily job fails:** the site keeps its last good data, so nothing is urgent. Read the failed step in the Actions tab. Late or unavailable nflverse data usually clears by itself, so rerun it by hand or wait for the next day's run.
+- **"No projectable players":** expected between seasons, when there are no upcoming games. Otherwise, check whether roster or schedule data changed.
+- **The daily job stops running:** GitHub can pause scheduled workflows after 60 days without repo activity. Re-enable it from the Actions tab each September.
+- **Bad data got published:** revert the job's commit. Don't edit the log by hand, because its git history is what proves predictions came before kickoff.
 
 ### Phase 6: Deployment preparation
 - [ ] Set the Vercel root directory to `frontend` and create a preview deploy
