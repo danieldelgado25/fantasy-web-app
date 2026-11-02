@@ -1,0 +1,21 @@
+# Redeploys the backend daily, because train.py runs during Render's build:
+# each deploy pulls fresh stats, schedule and roster data and retrains. If that
+# build fails, Render keeps serving the last good deploy.
+name: Refresh projections
+
+on:
+  schedule:
+    # 10:00 UTC, once overnight stats from the previous day's games have had time to land.
+    # September through February only: there are no games to refresh in the offseason.
+    - cron: "0 10 * 1,2,9-12 *"
+  # Allows a manual refresh from the GitHub Actions tab.
+  workflow_dispatch:
+
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy hook
+        run: curl --fail --silent --show-error --request POST "$RENDER_DEPLOY_HOOK"
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
