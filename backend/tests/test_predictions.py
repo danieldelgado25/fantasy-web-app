@@ -121,6 +121,28 @@ def test_add_rank_breaks_ties_the_same_way_regardless_of_input_order() -> None:
     assert first.sort("player_id")["rank"].to_list() == second.sort("player_id")["rank"].to_list()
 
 
+def test_build_review_shows_differences_and_keeps_players_who_did_not_play() -> None:
+    log = pl.DataFrame(
+        {
+            "season": [2026, 2026],
+            "week": [5, 5],
+            "player_id": ["A", "B"],
+            "player_name": ["Player A", "Player B"],
+            "team": ["SEA", "DAL"],
+            "opponent_team": ["NE", "NYG"],
+            "season_points": [90.0, 80.0],
+            **{f"pred_{s}": [10.0, 5.0] for s in predictions.REVIEW_STATS},
+        }
+    )
+    actuals = pl.DataFrame({"season": [2026], "week": [5], "player_id": ["A"], **{s: [12.5] for s in predictions.REVIEW_STATS}})
+
+    review = predictions.build_review(log, actuals).sort("player_name")
+
+    # A beat the projection by 2.5; B didn't play, so has no actual or difference.
+    assert review["diff_ppr_points"].to_list() == [2.5, None]
+    assert review["actual_targets"].to_list() == [12.5, None]
+
+
 def test_score_predictions_scores_top_players_only_and_counts_who_played(monkeypatch) -> None:
     monkeypatch.setattr(predictions, "TOP_N", 2)
     log = pl.DataFrame(
