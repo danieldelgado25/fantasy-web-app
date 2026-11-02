@@ -16,10 +16,11 @@ stood when the prediction was made.
 # How many top-ranked players are displayed and scored.
 TOP_N = 20
 
-# Passing bar: over this many finished weeks, every prediction is made, average
-# error beats the baseline, and rankings correlate with actual results at least this well.
+# Passing bar: over this many finished weeks, every prediction is made, and the model
+# beats the baseline on both average error and ranking. A fixed ranking target doesn't
+# work: over 2023-2025 a 4-week average swung from 0.05 to 0.37, so reaching 0.30 was
+# largely luck, while the model out-ranked the baseline in 80% of those windows.
 GATE_WINDOW_WEEKS = 4
-GATE_MIN_RANK_CORRELATION = 0.3
 
 # Columns that identify a logged prediction.
 LOG_KEY = ["season", "week", "player_id"]
@@ -114,7 +115,8 @@ def score_predictions(log: pl.DataFrame, actuals: pl.DataFrame) -> list[dict]:
             for stat in PREDICTED_STATS:
                 score[f"{stat}_mae"] = _mean_abs_error(played, f"pred_{stat}", stat)
                 score[f"{stat}_baseline_mae"] = _mean_abs_error(played, f"base_{stat}", stat)
-            score["rank_correlation"] = played.select(pl.corr(f"pred_{POINTS_STAT}", POINTS_STAT, method="spearman")).item()
+            score["rank_correlation"] = _rank_correlation(played, f"pred_{POINTS_STAT}")
+            score["baseline_rank_correlation"] = _rank_correlation(played, f"base_{POINTS_STAT}")
         scores.append(score)
     return scores
 
@@ -122,6 +124,11 @@ def score_predictions(log: pl.DataFrame, actuals: pl.DataFrame) -> list[dict]:
 def _mean_abs_error(frame: pl.DataFrame, predicted: str, actual: str) -> float:
     """Average absolute difference between two columns."""
     return frame.select((pl.col(predicted) - pl.col(actual)).abs().mean()).item()
+
+
+def _rank_correlation(frame: pl.DataFrame, predicted: str) -> float:
+    """How well a column ordered players by actual points, from -1 to 1."""
+    return frame.select(pl.corr(predicted, POINTS_STAT, method="spearman")).item()
 
 
 def check_gate(scores: list[dict], completed_weeks: list[int]) -> dict:
@@ -138,11 +145,12 @@ def check_gate(scores: list[dict], completed_weeks: list[int]) -> dict:
     mae = sum(s[f"{POINTS_STAT}_mae"] * s["played"] for s in recent) / played
     baseline_mae = sum(s[f"{POINTS_STAT}_baseline_mae"] * s["played"] for s in recent) / played
     rank_correlation = sum(s["rank_correlation"] for s in recent) / len(recent)
+    baseline_rank_correlation = sum(s["baseline_rank_correlation"] for s in recent) / len(recent)
 
     checks = {
         "all_predictions_made": all(s["predicted"] == TOP_N for s in recent),
         "beats_baseline": mae < baseline_mae,
-        "ranks_well": rank_correlation >= GATE_MIN_RANK_CORRELATION,
+        "ranks_better_than_baseline": rank_correlation > baseline_rank_correlation,
     }
     return {
         "passed": all(checks.values()),
@@ -150,5 +158,6 @@ def check_gate(scores: list[dict], completed_weeks: list[int]) -> dict:
         "mae": round(mae, 3),
         "baseline_mae": round(baseline_mae, 3),
         "rank_correlation": round(rank_correlation, 3),
+        "baseline_rank_correlation": round(baseline_rank_correlation, 3),
         **checks,
     }

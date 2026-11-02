@@ -81,7 +81,7 @@ def print_scores(label: str, scores: list[dict], gate: dict) -> None:
             print(f"  Week {s['week']}: {s['predicted']} predicted, not enough results yet")
             continue
         details = "  ".join(f"{stat} {s[f'{stat}_mae']:.2f}/{s[f'{stat}_baseline_mae']:.2f}" for stat in PREDICTED_STATS)
-        print(f"  Week {s['week']}: {s['predicted']}/{TOP_N} predicted, {s['played']} played, rank {s['rank_correlation']:.2f}  MAE model/baseline: {details}")
+        print(f"  Week {s['week']}: {s['predicted']}/{TOP_N} predicted, {s['played']} played, rank {s['rank_correlation']:.2f}/{s['baseline_rank_correlation']:.2f}  MAE model/baseline: {details}")
     print(f"  Gate: {gate}")
 
 

@@ -69,7 +69,14 @@ def test_upsert_log_replaces_same_game_and_keeps_other_rows(tmp_path) -> None:
     assert result["pred_ppr_points"].to_list() == [10.0, 12.0]
 
 
-def _score(week: int, mae: float = 5.0, baseline_mae: float = 6.0, correlation: float = 0.5, predicted: int = 20) -> dict:
+def _score(
+    week: int,
+    mae: float = 5.0,
+    baseline_mae: float = 6.0,
+    correlation: float = 0.2,
+    baseline_correlation: float = 0.1,
+    predicted: int = 20,
+) -> dict:
     """Build one week's score with passing values unless a test overrides them."""
     return {
         "week": week,
@@ -78,6 +85,7 @@ def _score(week: int, mae: float = 5.0, baseline_mae: float = 6.0, correlation: 
         "ppr_points_mae": mae,
         "ppr_points_baseline_mae": baseline_mae,
         "rank_correlation": correlation,
+        "baseline_rank_correlation": baseline_correlation,
     }
 
 
@@ -100,7 +108,7 @@ def test_check_gate_fails_each_check_independently() -> None:
     weeks = [1, 2, 3, 4]
 
     assert check_gate([_score(w, mae=7.0) for w in weeks], weeks)["beats_baseline"] is False
-    assert check_gate([_score(w, correlation=0.1) for w in weeks], weeks)["ranks_well"] is False
+    assert check_gate([_score(w, correlation=0.05) for w in weeks], weeks)["ranks_better_than_baseline"] is False
     assert check_gate([_score(w, predicted=19) for w in weeks], weeks)["all_predictions_made"] is False
 
 
@@ -141,3 +149,4 @@ def test_score_predictions_scores_top_players_only_and_counts_who_played(monkeyp
     assert score["ppr_points_mae"] == 1.5
     assert score["ppr_points_baseline_mae"] == 4.0
     assert score["rank_correlation"] == 1.0
+    assert score["baseline_rank_correlation"] is not None
