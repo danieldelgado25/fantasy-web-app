@@ -4,7 +4,7 @@ Design notes for decisions made and features intentionally deferred, so context 
 
 ## Phases to deployment
 
-Check items off as they land. Deployment waits on Phase 5, because proving the predictions comes before publishing them.
+Check items off as they land. The site is mainly for recruiters and interviewers, so launch doesn't wait on Phase 5: the public project log and accuracy section show how the model is being evaluated while it runs.
 
 ### Phase 1: Deployment readiness (done)
 - [x] Fix the API start command, stale seasons and projection errors
@@ -74,7 +74,10 @@ Findings so far, walking forward through 2023-2025 (54 weeks) for each week's to
 
 ### Phase 6: Deployment preparation
 - [ ] Decide whether to enforce CI. GitHub's required checks would also reject the daily job's direct commits to `main`, so it would need a bypass or a separate data branch
-- [ ] Connect the GitHub repo in Vercel with root directory `frontend`, and set the production branch to something other than `main` so pushes stay previews until launch
+- [x] Connect the GitHub repo in Vercel with root directory `frontend`, and set the production branch to something other than `main` so pushes stay previews until launch
+- [x] Fix the critical TanStack Start flaw Vercel blocked, scan git history for secrets and update flagged build tools
+- [x] Add a public project log of adjustments and re-evaluations
+- [ ] Add a project log entry whenever the model, its evaluation or the site changes in a way worth explaining
 - [ ] Confirm the daily job's commit triggers a Vercel rebuild
 - [ ] Test the preview on desktop and phone
 - [x] Add a short note to the site saying what the numbers are and when they were updated
@@ -84,7 +87,8 @@ Findings so far, walking forward through 2023-2025 (54 weeks) for each week's to
 Done when: a preview URL shows current data without any manual steps.
 
 ### Phase 7: Public launch
-- [ ] Promote to the production URL
+- [ ] Point Vercel's production branch back to `main`, so each daily job commit publishes fresh data automatically, then flag the `production` branch for removal
+- [ ] Turn off Vercel's login requirement for the production URL if it applies
 - [ ] Share the link and confirm it works without cloning anything
 - [ ] Watch the first week of unattended refreshes
 
