@@ -1,5 +1,6 @@
 import polars as pl
 
+from wr_predictor import data_loader
 from wr_predictor.data_loader import (
     _load_cached,
     _load_seasons_cached,
@@ -51,6 +52,16 @@ def test_load_seasons_cached_builds_sorted_season_tag_filename(tmp_path) -> None
     _load_seasons_cached("stats", [2023, 2021], lambda: pl.DataFrame({"a": [1]}), raw_data_dir)
 
     assert (tmp_path / "stats_2021-2023.parquet").exists()
+
+
+def test_load_seasons_cached_always_fetches_in_progress_season(tmp_path, monkeypatch) -> None:
+    # Even with a snapshot already on disk, an in-progress season must refetch.
+    monkeypatch.setattr(data_loader.nfl, "get_current_season", lambda: 2026)
+    pl.DataFrame({"a": [99]}).write_parquet(tmp_path / "stats_2025-2026.parquet")
+
+    result = _load_seasons_cached("stats", [2025, 2026], lambda: pl.DataFrame({"a": [1]}), str(tmp_path))
+
+    assert result["a"].to_list() == [1]
 
 
 def test_load_cached_builds_name_only_filename(tmp_path) -> None:

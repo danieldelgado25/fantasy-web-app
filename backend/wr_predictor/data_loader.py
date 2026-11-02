@@ -31,6 +31,13 @@ def load_schedules(seasons: list[int], raw_data_dir: str = RAW_DATA_DIR) -> pl.D
     return _load_seasons_cached("schedules", seasons, lambda: nfl.load_schedules(seasons), raw_data_dir)
 
 
+def load_weekly_rosters(seasons: list[int], raw_data_dir: str = RAW_DATA_DIR) -> pl.DataFrame:
+    """
+    Load week-by-week team rosters (including player status), snapshotting to raw_data_dir.
+    """
+    return _load_seasons_cached("rosters_weekly", seasons, lambda: nfl.load_rosters_weekly(seasons), raw_data_dir)
+
+
 def load_injuries(seasons: list[int], raw_data_dir: str = RAW_DATA_DIR) -> pl.DataFrame:
     """
     Load injuries/practice participation, snapshotting to raw_data_dir.
@@ -53,7 +60,12 @@ def _load_seasons_cached(name: str, seasons: list[int], fetch, raw_data_dir: str
     """
     Read a parquet snapshot for (name, seasons) from raw_data_dir if present,
     otherwise fetch fresh data and write the snapshot before returning it.
+    Seasons that are in progress or still ahead keep changing, so any request
+    including one always fetches: a snapshot would freeze it at its first pull.
     """
+    if max(seasons) >= nfl.get_current_season():
+        return _to_polars(fetch())
+
     season_tag = "-".join(str(s) for s in sorted(seasons))
     cache_path = os.path.join(raw_data_dir, f"{name}_{season_tag}.parquet")
     return _read_or_fetch(cache_path, fetch, raw_data_dir)
