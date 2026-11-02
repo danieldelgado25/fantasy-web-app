@@ -2,10 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { AccuracyPanel } from "@/components/AccuracyPanel";
 import { PlayerSearch } from "@/components/PlayerSearch";
 import { ProjectionPanel } from "@/components/ProjectionPanel";
 import { TopPlayersTable } from "@/components/TopPlayersTable";
-import { fetchProjections, type Player } from "@/lib/api";
+import { fetchAccuracy, fetchProjections, type Player } from "@/lib/api";
 
 /** How many top-ranked players the table lists. Search reaches everyone else. */
 const TOP_PLAYERS_SHOWN = 20;
@@ -40,6 +41,12 @@ function Index() {
     queryFn: fetchProjections,
   });
 
+  const accuracyQuery = useQuery({
+    queryKey: ["accuracy"],
+    queryFn: fetchAccuracy,
+  });
+
+  const generatedAt = projectionsQuery.data?.generated_at;
   const players = projectionsQuery.data?.players ?? [];
   const topPlayers = players.filter((p) => p.rank <= TOP_PLAYERS_SHOWN);
   const selectedProjection =
@@ -54,6 +61,11 @@ function Index() {
           </h1>
           <p className="text-muted-foreground text-sm">
             Fantasy football projections for NFL wide receivers
+          </p>
+          <p className="text-muted-foreground mt-2 text-xs">
+            Estimates from a statistical model trained on past NFL games, not guarantees. Injuries
+            and late news may not be reflected.
+            {generatedAt && ` Updated ${new Date(generatedAt).toLocaleString()}.`}
           </p>
         </div>
       </header>
@@ -93,6 +105,9 @@ function Index() {
               />
             </section>
           )}
+
+          {/* Accuracy is secondary, so if it fails to load the projections still show. */}
+          {accuracyQuery.data && <AccuracyPanel accuracy={accuracyQuery.data} />}
         </div>
       </main>
     </div>
