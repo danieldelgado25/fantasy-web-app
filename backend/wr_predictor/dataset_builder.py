@@ -4,6 +4,7 @@ import os
 import polars as pl
 
 from wr_predictor import data_loader, features, filters, targets
+from wr_predictor.stats import NEUTRAL_SPREAD_LINE, NEUTRAL_TOTAL_LINE, NEXT_GAME_CONTEXT
 
 """
 File imported by main.py to build the training dataset.
@@ -61,6 +62,7 @@ def build_training_dataset(
     # PPR fantasy points, then target and drop rows without target
     weekly = features.add_basic_fantasy_points(weekly)
     weekly = targets.add_next_week_target(weekly)
+    weekly = features.add_next_game_context(weekly)
     weekly = targets.drop_rows_without_target(weekly)
 
     # Optional min games per player per season.
@@ -144,6 +146,7 @@ def build_latest_snapshot(
     weekly = filters.drop_special_teams_only_rows(weekly)
     weekly = features.add_basic_fantasy_points(weekly)
     weekly = targets.add_next_week_target(weekly)
+    weekly = features.add_next_game_context(weekly)
     weekly = features.add_lag_features(weekly)
     weekly = features.add_rolling_features(weekly)
 
@@ -194,6 +197,38 @@ def filter_to_active_roster(snapshot: pl.DataFrame, season: int) -> pl.DataFrame
     return snapshot.drop("team").join(active, on="player_id", how="inner")
 
 
+def team_game_context(schedule: pl.DataFrame) -> pl.DataFrame:
+    """
+    Turn a schedule into one row per team per game, with the next_* model inputs set.
+    Missing betting lines get neutral values, so a player isn't hidden just because
+    their game's line hasn't been posted. Shared by live predictions and replays, so
+    both describe a game the same way.
+    """
+    keep = [c for c in ("season", "week", "home_team", "away_team", "spread_line", "total_line", "roof", "gameday", "gametime") if c in schedule.columns]
+    schedule = schedule.select(keep)
+
+    home_view = schedule.rename({"home_team": "team", "away_team": "opponent_team"}).with_columns(pl.lit(1).cast(pl.Int8).alias("is_home"))
+    away_view = schedule.rename({"away_team": "team", "home_team": "opponent_team"}).with_columns(pl.lit(0).cast(pl.Int8).alias("is_home"))
+    team_schedule = pl.concat([home_view, away_view], how="diagonal_relaxed")
+
+    if "roof" in team_schedule.columns:
+        team_schedule = team_schedule.with_columns(_is_dome("roof")).drop("roof")
+    if "spread_line" in team_schedule.columns:
+        team_schedule = team_schedule.with_columns(pl.col("spread_line").fill_null(NEUTRAL_SPREAD_LINE))
+    if "total_line" in team_schedule.columns:
+        team_schedule = team_schedule.with_columns(pl.col("total_line").fill_null(NEUTRAL_TOTAL_LINE))
+
+    team_schedule = features.add_implied_total(team_schedule)
+    return team_schedule.with_columns(
+        [pl.col(source).alias(column) for column, source in NEXT_GAME_CONTEXT.items() if source in team_schedule.columns]
+    )
+
+
+def _is_dome(roof_column: str) -> pl.Expr:
+    """1 when a game is played under a roof, whether a fixed dome or a closed retractable one."""
+    return pl.col(roof_column).cast(pl.Utf8).fill_null("").str.to_lowercase().is_in(["dome", "closed"]).cast(pl.Int8).alias("is_dome")
+
+
 def attach_next_game_context(snapshot: pl.DataFrame, seasons: list[int]) -> pl.DataFrame:
     """
     Replace a snapshot's game-context columns (opponent_team, season, week,
@@ -218,22 +253,10 @@ def attach_next_game_context(snapshot: pl.DataFrame, seasons: list[int]) -> pl.D
     if sched.is_empty():
         return snapshot.clear()
 
-    keep = [c for c in ("season", "week", "home_team", "away_team", "spread_line", "total_line", "roof", "gameday", "gametime") if c in sched.columns]
-    sched = sched.select(keep)
-
-    home_view = sched.rename({"home_team": "team", "away_team": "opponent_team"}).with_columns(pl.lit(1).cast(pl.Int8).alias("is_home"))
-    away_view = sched.rename({"away_team": "team", "home_team": "opponent_team"}).with_columns(pl.lit(0).cast(pl.Int8).alias("is_home"))
-    team_schedule = pl.concat([home_view, away_view], how="diagonal_relaxed")
-
-    if "roof" in team_schedule.columns:
-        roof_str = pl.col("roof").cast(pl.Utf8).fill_null("")
-        team_schedule = team_schedule.with_columns(
-            roof_str.str.to_lowercase().str.contains("dome").cast(pl.Int8).alias("is_dome")
-        ).drop("roof")
-
+    team_schedule = team_game_context(sched)
     team_schedule = team_schedule.rename({"season": "next_season", "week": "next_week"})
 
-    stale_cols = [c for c in ("opponent_team", "spread_line", "total_line", "is_home", "is_dome") if c in snapshot.columns]
+    stale_cols = [c for c in ("opponent_team", "spread_line", "total_line", "is_home", "is_dome", *NEXT_GAME_CONTEXT) if c in snapshot.columns]
     anchor = snapshot.drop(stale_cols).rename({"season": "last_season", "week": "last_week"})
 
     joined = anchor.join(team_schedule, on="team", how="left")
@@ -367,9 +390,6 @@ def _merge_schedule_context(weekly: pl.DataFrame, seasons: list[int]) -> pl.Data
             (pl.col("team") == pl.col("home_team")).cast(pl.Int8).alias("is_home")
         )
     if "roof" in out.columns:
-        roof_str = pl.col("roof").cast(pl.Utf8).fill_null("")
-        out = out.with_columns(
-            roof_str.str.to_lowercase().str.contains("dome").cast(pl.Int8).alias("is_dome")
-        )
+        out = out.with_columns(_is_dome("roof"))
 
     return out

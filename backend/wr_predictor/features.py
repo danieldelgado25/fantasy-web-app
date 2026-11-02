@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import polars as pl
 
-from wr_predictor.stats import FEATURE_STATS, next_week_column, PREDICTED_STATS
+from wr_predictor.stats import FEATURE_STATS, NEXT_GAME_CONTEXT, next_week_column, PREDICTED_STATS
 
 
 def add_basic_fantasy_points(data_frame: pl.DataFrame) -> pl.DataFrame:
@@ -91,6 +91,33 @@ def add_rolling_features(data_frame: pl.DataFrame) -> pl.DataFrame:
     return _add_trend_features(out)
 
 
+def add_implied_total(data_frame: pl.DataFrame) -> pl.DataFrame:
+    """
+    Add the points a team is expected to score, from the betting lines. nflverse's
+    spread_line is positive when the home team is favored. Skipped if a column is missing.
+    """
+    if not {"is_home", "spread_line", "total_line"}.issubset(data_frame.columns):
+        return data_frame
+    signed_spread = pl.when(pl.col("is_home") == 1).then(pl.col("spread_line")).otherwise(-pl.col("spread_line"))
+    return data_frame.with_columns(((pl.col("total_line") + signed_spread) / 2).alias("implied_total"))
+
+
+def add_next_game_context(data_frame: pl.DataFrame) -> pl.DataFrame:
+    """
+    Give each training row the context of the player's next game, the one its target
+    comes from. All of it is known before that kickoff. Assumes rows are sorted by
+    player and game, which add_next_week_target guarantees.
+    """
+    with_totals = add_implied_total(data_frame)
+    return with_totals.with_columns(
+        [
+            pl.col(source).shift(-1).over("player_id").alias(column)
+            for column, source in NEXT_GAME_CONTEXT.items()
+            if source in with_totals.columns
+        ]
+    )
+
+
 def select_model_columns(
     data_frame: pl.DataFrame,
     extra_feature_cols: list[str] | None = None,
@@ -102,9 +129,8 @@ def select_model_columns(
     # PPR first, then receptions / targets / yardage-style history, rolls grouped the same way.
     # temp/wind are deliberately absent: game-time weather isn't known before kickoff, and
     # nflverse leaves it null for upcoming and most indoor games.
-    # is_home/is_dome/spread_line/total_line are also absent: on a training row they describe
-    # the game just played, while serving would pass the next game's values, and betting lines
-    # are often not posted yet. See ROADMAP.md for adding them back properly.
+    # is_home/is_dome/spread_line/total_line are also absent: they describe the game just played.
+    # The next_* columns carry the same information for the game being predicted.
     meta_cols = [
         "player_id",
         "player_name",
@@ -120,6 +146,7 @@ def select_model_columns(
         *meta_cols,
         "ppr_points",
         "ppr_points_minus_roll3",
+        *NEXT_GAME_CONTEXT,
         *[f"{stat}_prev_week" for stat in FEATURE_STATS],
         *[f"{stat}_rolling_3" for stat in FEATURE_STATS],
         *[f"{stat}_rolling_5" for stat in FEATURE_STATS],

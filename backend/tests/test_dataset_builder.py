@@ -10,7 +10,9 @@ from wr_predictor.dataset_builder import (
     build_latest_snapshot,
     build_training_dataset,
     filter_to_active_roster,
+    team_game_context,
 )
+from wr_predictor.features import add_next_game_context
 
 
 """
@@ -275,3 +277,51 @@ def test_attach_next_game_context_drops_team_with_no_upcoming_game(monkeypatch) 
     result = attach_next_game_context(snapshot, seasons=[2025])
 
     assert result.height == 0
+
+
+def test_training_row_gets_the_context_of_the_game_it_predicts() -> None:
+    weekly = pl.DataFrame(
+        {
+            "player_id": ["A", "A", "A"],
+            "is_home": [1, 0, 1],
+            "is_dome": [0, 1, 0],
+            "spread_line": [3.0, 3.0, -7.0],
+            "total_line": [40.0, 50.0, 45.0],
+        }
+    )
+
+    result = add_next_game_context(weekly)
+
+    # Row 1 predicts game 2: an away game with the home team favored by 3.
+    assert result["next_is_home"].to_list() == [0, 1, None]
+    assert result["next_is_dome"].to_list() == [1, 0, None]
+    assert result["next_total_line"].to_list() == [50.0, 45.0, None]
+    assert result["next_implied_total"].to_list() == [23.5, 19.0, None]
+
+
+def test_team_game_context_gives_neutral_values_when_lines_are_missing() -> None:
+    schedule = pl.DataFrame(
+        {
+            "season": [2026, 2026],
+            "week": [9, 9],
+            "home_team": ["SEA", "NE"],
+            "away_team": ["ARI", "GB"],
+            "spread_line": [11.5, None],
+            "total_line": [45.0, None],
+            "roof": ["closed", None],
+        }
+    )
+
+    result = team_game_context(schedule)
+    seattle = result.filter(pl.col("team") == "SEA").row(0, named=True)
+    arizona = result.filter(pl.col("team") == "ARI").row(0, named=True)
+    new_england = result.filter(pl.col("team") == "NE").row(0, named=True)
+
+    # The favored home team is expected to score more than its opponent.
+    assert seattle["next_implied_total"] == 28.25
+    assert arizona["next_implied_total"] == 16.75
+    assert seattle["next_is_dome"] == 1
+    assert new_england["next_is_dome"] == 0
+    # A missing line becomes a pick'em at the average total.
+    assert new_england["next_total_line"] == 44.7
+    assert new_england["next_implied_total"] == 22.35

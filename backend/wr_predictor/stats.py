@@ -22,6 +22,21 @@ RUSHING_STATS = ["carries", "rushing_yards"]
 # Every stat that gets lag and rolling-average columns.
 FEATURE_STATS = [POINTS_STAT, *RECEIVING_STATS, *RECEIVING_USAGE_STATS, *RUSHING_STATS]
 
+# Inputs describing the game being predicted, mapped to the schedule column each comes
+# from. A training row takes these from the game its target comes from, so they mean the
+# same thing in training and serving.
+NEXT_GAME_CONTEXT = {
+    "next_is_home": "is_home",
+    "next_is_dome": "is_dome",
+    "next_total_line": "total_line",
+    "next_implied_total": "implied_total",
+}
+
+# Stand-ins until a betting line is posted: a pick'em spread and the average total
+# across 2021-2026 games. The prediction is replaced once the real line appears.
+NEUTRAL_SPREAD_LINE = 0.0
+NEUTRAL_TOTAL_LINE = 44.7
+
 # Stats given their own projection, by position.
 PREDICTED_STATS_BY_POSITION = {
     "WR": [*RECEIVING_STATS, *RUSHING_STATS, POINTS_STAT],

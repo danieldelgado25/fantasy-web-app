@@ -9,7 +9,7 @@ import polars as pl
 
 from train import FIRST_TRAIN_SEASON
 from wr_predictor import data_loader
-from wr_predictor.dataset_builder import _normalize_receiving_columns, build_latest_snapshot, build_training_dataset
+from wr_predictor.dataset_builder import _normalize_receiving_columns, build_latest_snapshot, build_training_dataset, team_game_context
 from wr_predictor.model import (
     get_feature_columns,
     get_rushing_feature_columns,
@@ -19,7 +19,7 @@ from wr_predictor.model import (
     train_stat_models,
 )
 from wr_predictor.predictions import add_rank, build_log_rows, check_gate, score_predictions, season_points, TOP_N
-from wr_predictor.stats import POINTS_STAT, PREDICTED_STATS
+from wr_predictor.stats import NEXT_GAME_CONTEXT, POINTS_STAT, PREDICTED_STATS
 
 """
 Scores saved predictions against actual results and writes a report.
@@ -41,17 +41,6 @@ def load_actuals(stats: pl.DataFrame) -> pl.DataFrame:
     )
 
 
-def week_matchups(schedule: pl.DataFrame, week: int) -> pl.DataFrame:
-    """One row per team playing in `week`, with its opponent. Teams on bye are absent."""
-    games = schedule.filter(pl.col("week") == week)
-    return pl.concat(
-        [
-            games.select(pl.col("home_team").alias("team"), pl.col("away_team").alias("opponent_team")),
-            games.select(pl.col("away_team").alias("team"), pl.col("home_team").alias("opponent_team")),
-        ]
-    )
-
-
 def replay_week(seasons: list[int], season: int, week: int, stats: pl.DataFrame, schedule: pl.DataFrame) -> pl.DataFrame:
     """
     Train and predict one past week using only earlier games. Doesn't apply the live
@@ -64,8 +53,10 @@ def replay_week(seasons: list[int], season: int, week: int, stats: pl.DataFrame,
     rushing_columns = get_rushing_feature_columns(weekly)
     models = train_stat_models(prepare_model_frame(weekly, feature_columns), feature_columns, rushing_columns)
 
-    snapshot = build_latest_snapshot(seasons=seasons, before=before).drop("opponent_team", "season", "week")
-    snapshot = snapshot.join(week_matchups(schedule, week), on="team", how="inner")
+    # Teams on bye have no row for this week, so their players drop out here.
+    games = team_game_context(schedule.filter(pl.col("week") == week)).select("team", "opponent_team", *NEXT_GAME_CONTEXT)
+    snapshot = build_latest_snapshot(seasons=seasons, before=before).drop("opponent_team", "season", "week", *NEXT_GAME_CONTEXT)
+    snapshot = snapshot.join(games, on="team", how="inner")
     snapshot = prepare_inference_frame(snapshot, feature_columns + rushing_columns)
     snapshot = snapshot.with_columns(pl.lit(season).alias("season"), pl.lit(week).alias("week"))
 

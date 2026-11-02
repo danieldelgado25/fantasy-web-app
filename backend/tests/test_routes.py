@@ -112,4 +112,4 @@ def test_projections_returns_prediction_for_known_player(client, monkeypatch):
     assert body["season"] == 2026
     assert body["week"] == 1
     assert body["projected_ppr_points"] == 12.34
-    assert body["model_version"] == "ridge-v2"
+    assert body["model_version"] == "ridge-v3"
