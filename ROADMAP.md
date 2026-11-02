@@ -2,10 +2,74 @@
 
 Design notes for decisions made and features intentionally deferred, so context isn't lost between sessions. Update this file when a deferred item is picked back up or a decision below changes.
 
+## Phases to deployment
+
+Check items off as they land. Deployment waits on Phase 5, because proving the predictions comes before publishing them.
+
+### Phase 1: Deployment readiness (done)
+- [x] Fix the API start command, stale seasons and projection errors
+- [x] Use rosters and each team's next unplayed game
+- [x] Pin dependencies and stop mock data reaching production
+
+### Phase 2: Prediction pipeline (done)
+- [x] Official PPR points, and shared stat groups for future positions
+- [x] One model per stat, with a corrected last-3-games baseline
+- [x] Prediction log, scoring, the passing bar and a season replay
+- [x] Top 20 table and a static projections file
+
+### Phase 3: Start live logging (deadline: before the Nov 5 kickoff)
+- [ ] Push `deploy-readiness` and merge it to `main`
+- [ ] Run the refresh workflow by hand from the GitHub Actions tab
+- [ ] Confirm its commit updated `backend/predictions/2026.csv` and `projections.json`
+- [ ] Confirm the next scheduled daily run works
+
+Done when: week 9 predictions are on GitHub before kickoff and the daily job runs unattended.
+
+### Phase 4: CI
+- [ ] Run backend tests, the frontend type check and the build on every push
+- [ ] Push a deliberately failing branch to prove CI catches it
+- [ ] Require CI to pass before merging to `main`
+- [ ] Write down what to do when CI or the daily job fails
+
+Done when: a broken change can't reach `main`.
+
+### Phase 5: Prove the model (weeks 9-12 live, first verdict after Nov 30)
+- [ ] Review each finished week: predicted vs actual targets, catches and points
+- [ ] Improve ranking, currently 0.23 against the 0.30 bar
+- [ ] Test past-error features, game context and other model types, keeping only what beats the current model
+- [ ] Pass the bar on four finished live weeks: 20 of 20 predictions, MAE better than baseline, ranking at least 0.30
+
+Done when: `backend/predictions/2026_report.json` shows the live gate passed. A model change restarts the four-week window, so week 15 is the last week a new window can start this season.
+
+### Phase 6: Deployment preparation
+- [ ] Set the Vercel root directory to `frontend` and create a preview deploy
+- [ ] Confirm the daily job's commit triggers a Vercel rebuild
+- [ ] Test the preview on desktop and phone
+- [ ] Add a short note to the site saying what the numbers are and when they were updated
+- [ ] Remove the deprecated files flagged for manual removal
+
+Done when: a preview URL shows current data without any manual steps.
+
+### Phase 7: Public launch
+- [ ] Promote to the production URL
+- [ ] Share the link and confirm it works without cloning anything
+- [ ] Watch the first week of unattended refreshes
+
+Done when: anyone can open the link and see this week's projections.
+
+### After launch
+Roster-based pivots, more positions and the player news monitor, all described below.
+
 ## Deployment architecture
 
 - **Frontend (React):** deploy to Vercel. Zero-config GitHub deploys, preview URLs per PR — a strong fit for a static/SSR React app.
-- **Backend (Flask + `wr_predictor`):** deploy to a separate host built for long-running Python processes (Render or Railway are the leading candidates; not yet chosen). Reasoning: Vercel's Python support is serverless-function-only, with hard package-size limits that `scikit-learn` + `polars` + `nflreadpy` eat into, plus cold starts and short execution timeouts — a poor fit for a pipeline that pulls multi-season data and trains models. Data refresh/retraining should run as a scheduled batch job on the backend host, writing precomputed projections that the API serves — not something recomputed per-request.
+- **No always-on backend:** a scheduled GitHub Action runs `train.py` and `evaluate.py`, then commits `frontend/public/data/projections.json` and the prediction log. That push rebuilds the site. It's free on a public repo, nothing sleeps, and git history proves when each prediction was made. Reasoning over a hosted API: projections are precomputed anyway, so a server would only add cold starts and another host to maintain. If a feature ever needs per-request logic, the deprecated Flask API in `backend/api/` is the starting point.
+
+## Passing bar for the model
+
+Scored in `backend/wr_predictor/predictions.py`, over the latest 4 finished weeks for the top 20 players as ranked before each game: all 20 predictions made, MAE better than the last-3-games baseline, and rank correlation averaging at least 0.3. Prediction tracking takes priority over deploying.
+
+Past-error features ("how far off was last week") are not in the model yet. Add them only if a backtest shows they beat the model without them, since one week's miss is often just touchdown luck.
 
 ## Deferred: rest-of-season (ROS) rankings
 

@@ -54,7 +54,7 @@ notebooks/          # experimentation only, not a home for reusable logic
 
 `wr_predictor` and `api` are kept as separate packages under `backend/` on purpose: the pipeline has no concept of HTTP, and the API is a thin, replaceable adapter over it.
 
-Run the pipeline/tests/API with `backend/` as the working directory (e.g. `cd backend && python main.py`, `cd backend && python -m pytest tests/`, `cd backend && python -m api.app`), after `pip install -r backend/requirements-dev.txt` (`requirements.txt` alone holds only what production needs).
+Run the pipeline/tests/API with `backend/` as the working directory (e.g. `cd backend && python main.py`, `cd backend && python -m pytest tests/`, `cd backend && python -m api.app`), after `pip install -r backend/requirements-dev.txt` (`requirements.txt` alone holds only what production needs). `python train.py` writes the projections and prediction log, and `python evaluate.py` scores them against actual results (add `--replay` to regenerate this season's past weeks).
 
 ## Roadmap
 
