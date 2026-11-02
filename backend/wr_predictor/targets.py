@@ -2,14 +2,15 @@ from __future__ import annotations
 
 import polars as pl
 
+from wr_predictor.stats import next_week_column, PREDICTED_STATS
+
 
 def add_next_week_target(data_frame: pl.DataFrame) -> pl.DataFrame:
     """
-    Create next week's fantasy output as the supervised-learning target.
+    Create next game's value of each predicted stat as a supervised-learning target.
     Requires ppr_points and player/season/week identifiers.
-    Sorts by player/season/week, shifts ppr_points one week back
-    Creates next_week_ppr_points column as next game's ppr_points.
-    (for each player shifted -1 over each player)
+    Sorts by player/season/week, then shifts each stat back one game per player,
+    giving next_week_ppr_points, next_week_targets, and so on.
     """
     player_col = _find_first_existing(data_frame.columns, ["player_id", "gsis_id", "player_name"])
     season_col = _find_first_existing(data_frame.columns, ["season"])
@@ -24,10 +25,11 @@ def add_next_week_target(data_frame: pl.DataFrame) -> pl.DataFrame:
     return (
         data_frame.sort([player_col, season_col, week_col])
         .with_columns(
-            pl.col("ppr_points")
-            .shift(-1)
-            .over(player_col)
-            .alias("next_week_ppr_points")
+            [
+                pl.col(stat).shift(-1).over(player_col).alias(next_week_column(stat))
+                for stat in PREDICTED_STATS
+                if stat in data_frame.columns
+            ]
         )
     )
 

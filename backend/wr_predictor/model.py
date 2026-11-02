@@ -7,6 +7,8 @@ import polars as pl
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
+from wr_predictor.stats import next_week_column, PREDICTED_STATS, RUSHING_STATS
+
 """
 Baseline and first-pass model training/evaluation for next_week_ppr_points.
 Uses a season-based train/validation split (train on past seasons, validate
@@ -47,11 +49,24 @@ def split_by_season(
 
 def get_feature_columns(data_frame: pl.DataFrame) -> list[str]:
     """
-    Every column except identifier/meta columns and the target is a
-    candidate model feature.
+    Model inputs: every column except identifiers, targets and rushing features,
+    which are added separately for rushing projections only.
     """
-    exclude = set(META_COLUMNS) | {TARGET_COLUMN}
-    return [col for col in data_frame.columns if col not in exclude]
+    return [
+        col
+        for col in data_frame.columns
+        if col not in META_COLUMNS and not col.startswith("next_week_") and not _is_rushing_feature(col)
+    ]
+
+
+def get_rushing_feature_columns(data_frame: pl.DataFrame) -> list[str]:
+    """Rushing lag and rolling-average columns, used as inputs for rushing projections."""
+    return [col for col in data_frame.columns if _is_rushing_feature(col)]
+
+
+def _is_rushing_feature(column: str) -> bool:
+    """True for a column derived from a rushing stat, such as carries_rolling_3."""
+    return any(column.startswith(f"{stat}_") for stat in RUSHING_STATS)
 
 
 def prepare_model_frame(data_frame: pl.DataFrame, feature_columns: list[str]) -> pl.DataFrame:
@@ -83,10 +98,45 @@ def prepare_inference_frame(snapshot: pl.DataFrame, feature_columns: list[str]) 
     return cleaned
 
 
+def train_stat_models(
+    frame: pl.DataFrame,
+    feature_columns: list[str],
+    rushing_feature_columns: list[str],
+) -> dict[str, tuple[Ridge, list[str]]]:
+    """
+    Fit one Ridge regression per predicted stat, so each can be scored against its
+    own actual result. Returns {stat: (model, the input columns it was fit on)}.
+    """
+    models = {}
+    for stat in PREDICTED_STATS:
+        target = next_week_column(stat)
+        if target not in frame.columns:
+            continue
+        columns = feature_columns + rushing_feature_columns if stat in RUSHING_STATS else feature_columns
+        rows = frame.drop_nulls(subset=[*columns, target])
+        model = Ridge(alpha=1.0)
+        model.fit(rows.select(columns).to_numpy(), rows[target].to_numpy())
+        models[stat] = (model, columns)
+    return models
+
+
+def predict_stats(models: dict[str, tuple[Ridge, list[str]]], frame: pl.DataFrame) -> pl.DataFrame:
+    """
+    Add a pred_<stat> column per model, floored at 0 because a linear model can go
+    slightly negative for low-usage players and none of these stats should.
+    """
+    return frame.with_columns(
+        [
+            pl.Series(f"pred_{stat}", model.predict(frame.select(columns).to_numpy())).clip(lower_bound=0.0)
+            for stat, (model, columns) in models.items()
+        ]
+    )
+
+
 def evaluate_baseline(validation: pl.DataFrame) -> dict[str, float]:
     """
-    Naive baseline: predict next week's points as this week's trailing
-    3-game rolling average. Any real model must beat this to be worth using.
+    Naive baseline: predict next week's points as the average of the player's
+    last 3 games, including the latest. Any real model must beat this to be worth using.
     """
     actual = validation[TARGET_COLUMN].to_numpy()
     predicted = validation["ppr_points_rolling_3"].to_numpy()
