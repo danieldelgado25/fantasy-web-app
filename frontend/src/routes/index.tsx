@@ -75,7 +75,7 @@ function Index() {
           <ProjectionPanel
             projection={projectionQuery.data ?? null}
             isLoading={projectionQuery.isLoading}
-            error={projectionQuery.error as Error | null}
+            error={(playersQuery.error ?? projectionQuery.error) as Error | null}
           />
         </div>
       </main>

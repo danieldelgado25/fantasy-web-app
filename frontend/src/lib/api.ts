@@ -46,8 +46,15 @@ const MOCK_PROJECTIONS: Record<string, Projection> = {
   },
 };
 
+/** Returns the configured API URL, or undefined to use mock data in local dev. */
 function getBaseUrl(): string | undefined {
-  return import.meta.env["VITE_API_BASE_URL"];
+  const baseUrl = import.meta.env["VITE_API_BASE_URL"];
+  // Mock data must never reach users as if it were a real projection, so a
+  // production build without an API URL fails visibly instead of falling back.
+  if (!baseUrl && !import.meta.env.DEV) {
+    throw new Error("VITE_API_BASE_URL is not configured.");
+  }
+  return baseUrl;
 }
 
 export async function fetchPlayers(): Promise<Player[]> {
