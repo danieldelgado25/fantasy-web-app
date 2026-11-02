@@ -1,0 +1,43 @@
+# Runs on every push to any branch, so a broken change is caught before it reaches main.
+# Only runs when code is pushed, so it costs nothing during the offseason. Commits from
+# the daily refresh job don't trigger it, because GitHub doesn't start workflows for
+# pushes made with the default token.
+name: CI
+
+on:
+  push:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      # Only what the tests need: requirements-dev.txt also adds the notebook tools.
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt pytest
+      - name: Run tests
+        working-directory: backend
+        run: python -m pytest -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.2"
+      # --frozen-lockfile fails if package.json and bun.lock have drifted apart.
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Type check
+        run: bunx tsc --noEmit
+      - name: Build
+        run: bun run build
