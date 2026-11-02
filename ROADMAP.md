@@ -62,7 +62,7 @@ Findings so far, walking forward through 2023-2025 (54 weeks) for each week's to
 - The model ranks volume better than scoring: in the replay of weeks 2-7, catches 0.38, targets 0.34, points 0.32, yards 0.26, touchdowns 0.18. Better opportunity data was the next thing to test.
 - Touchdowns drive the biggest misses. In that replay, a player's points miss averaged -3.1 with no touchdown, +6.9 with one and +15.7 with two, while weekly target and catch totals stayed close to actual.
 - Opportunity data from nflverse didn't clear the noise. On identical rows (2023-2025 ranking change, then 2026): expected production +0.010 and +0.014; teammates ruled out +0.010 and +0.001; red-zone, end-zone and deep targets +0.008 and +0.004; snap share +0.006 and -0.034. Ball quality, separation, drops and broken tackles, unused box-score columns, team pass volume and own injury status showed nothing reliable either. Using every group together made 2026 points error worse.
-- Keep under consideration: expected production (`load_ff_opportunity`), the only group ahead on ranking in all four seasons, and teammates ruled out (`load_injuries`), the strongest 2023-2025 result. Test the two together after the first live verdict. Route participation can't be used because `load_participation` stops at 2025.
+- Keep under consideration: expected production (`load_ff_opportunity`), the only group ahead on ranking in all four seasons, and teammates ruled out (`load_injuries`), the strongest 2023-2025 result. Tested together, they stayed within noise: ranking +0.012 over 2023-2025 and +0.009 in 2026, with points MAE 0.011 better and then 0.024 worse. Revisit if the live verdict fails. Scripts are on the `model-experiments` branch. Route participation can't be used because `load_participation` stops at 2025.
 
 ## When something fails
 
@@ -74,10 +74,11 @@ Findings so far, walking forward through 2023-2025 (54 weeks) for each week's to
 
 ### Phase 6: Deployment preparation
 - [ ] Decide whether to enforce CI. GitHub's required checks would also reject the daily job's direct commits to `main`, so it would need a bypass or a separate data branch
-- [ ] Set the Vercel root directory to `frontend` and create a preview deploy
+- [ ] Connect the GitHub repo in Vercel with root directory `frontend`, and set the production branch to something other than `main` so pushes stay previews until launch
 - [ ] Confirm the daily job's commit triggers a Vercel rebuild
 - [ ] Test the preview on desktop and phone
-- [ ] Add a short note to the site saying what the numbers are and when they were updated
+- [x] Add a short note to the site saying what the numbers are and when they were updated
+- [x] Show accuracy on the site, with live results and replays kept separate
 - [ ] Remove the deprecated files flagged for manual removal
 
 Done when: a preview URL shows current data without any manual steps.
