@@ -9,6 +9,7 @@ from wr_predictor.dataset_builder import (
     attach_next_game_context,
     build_latest_snapshot,
     build_training_dataset,
+    filter_to_active_roster,
 )
 
 
@@ -212,6 +213,53 @@ def test_attach_next_game_context_replaces_stale_game_with_next_scheduled(monkey
     assert row["opponent_team"] == "KC"
     assert row["is_home"] == 1
     assert row["spread_line"] == 3.0
+
+
+def test_attach_next_game_context_skips_games_already_played(monkeypatch) -> None:
+    # Player A last played week 3 and then missed time. Week 4 has a result, so
+    # the next game is week 5 even though week 4 comes right after their last game.
+    snapshot = pl.DataFrame(
+        {"player_id": ["A"], "team": ["SEA"], "season": [2026], "week": [3], "opponent_team": ["KC"]}
+    )
+    schedules = pl.DataFrame(
+        {
+            "season": [2026, 2026],
+            "week": [4, 5],
+            "home_team": ["SEA", "NE"],
+            "away_team": ["DAL", "SEA"],
+            "result": [7, None],
+        }
+    )
+    monkeypatch.setattr(data_loader, "load_schedules", lambda seasons: schedules)
+
+    result = attach_next_game_context(snapshot, seasons=[2026])
+
+    row = result.row(0, named=True)
+    assert row["week"] == 5
+    assert row["opponent_team"] == "NE"
+
+
+def test_filter_to_active_roster_uses_each_players_latest_entry(monkeypatch) -> None:
+    # A was traded (latest entry wins), B went on injured reserve, C's team was
+    # on bye in the league's latest week but C is still active, D isn't on a roster,
+    # E sat out one game but is still rostered.
+    snapshot = pl.DataFrame(
+        {"player_id": ["A", "B", "C", "D", "E"], "team": ["DAL", "SEA", "SF", "NE", "KC"]}
+    )
+    rosters = pl.DataFrame(
+        {
+            "gsis_id": ["A", "A", "B", "B", "C", "E", None],
+            "week": [7, 8, 7, 8, 7, 8, 8],
+            "status": ["ACT", "ACT", "ACT", "RES", "ACT", "INA", "ACT"],
+            "team": ["DAL", "NYG", "SEA", "SEA", "SF", "KC", "KC"],
+        }
+    )
+    monkeypatch.setattr(data_loader, "load_weekly_rosters", lambda seasons: rosters)
+
+    result = filter_to_active_roster(snapshot, season=2026).sort("player_id")
+
+    assert result["player_id"].to_list() == ["A", "C", "E"]
+    assert result["team"].to_list() == ["NYG", "SF", "KC"]
 
 
 def test_attach_next_game_context_drops_team_with_no_upcoming_game(monkeypatch) -> None:

@@ -164,6 +164,32 @@ def build_latest_snapshot(
     return latest
 
 
+def filter_to_active_roster(snapshot: pl.DataFrame, season: int) -> pl.DataFrame:
+    """
+    Keep only players whose most recent weekly roster entry in `season` has
+    status ACT or INA, and set their team from that entry. Removes retired, cut,
+    injured-reserve and practice-squad players, and keeps a traded player's
+    next game correct even before they've played for their new team. INA stays
+    because a player inactive for one game is still on the roster, and dropping
+    them would hide their projection for the game they return in. Uses each
+    player's own latest entry because a team on bye may be missing from the
+    league's latest week.
+    """
+    rosters = data_loader.load_weekly_rosters([season])
+    if rosters.is_empty():
+        return snapshot.clear()
+
+    active = (
+        rosters.filter(pl.col("gsis_id").is_not_null())
+        .sort("week")
+        .group_by("gsis_id", maintain_order=True)
+        .last()
+        .filter(pl.col("status").is_in(["ACT", "INA"]))
+        .select(pl.col("gsis_id").alias("player_id"), "team")
+    )
+    return snapshot.drop("team").join(active, on="player_id", how="inner")
+
+
 def attach_next_game_context(snapshot: pl.DataFrame, seasons: list[int]) -> pl.DataFrame:
     """
     Replace a snapshot's game-context columns (opponent_team, season, week,
@@ -181,6 +207,10 @@ def attach_next_game_context(snapshot: pl.DataFrame, seasons: list[int]) -> pl.D
         return snapshot
 
     sched = data_loader.load_schedules(seasons)
+    # A null result means the game hasn't been played. Without this, a player who
+    # missed games would be "projected" for a game their team already played.
+    if "result" in sched.columns:
+        sched = sched.filter(pl.col("result").is_null())
     if sched.is_empty():
         return snapshot.clear()
 
