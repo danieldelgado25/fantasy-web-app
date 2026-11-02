@@ -4,7 +4,11 @@ import { useState } from "react";
 
 import { PlayerSearch } from "@/components/PlayerSearch";
 import { ProjectionPanel } from "@/components/ProjectionPanel";
+import { TopPlayersTable } from "@/components/TopPlayersTable";
 import { fetchProjections, type Player } from "@/lib/api";
+
+/** How many top-ranked players the table lists. Search reaches everyone else. */
+const TOP_PLAYERS_SHOWN = 20;
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -37,6 +41,7 @@ function Index() {
   });
 
   const players = projectionsQuery.data?.players ?? [];
+  const topPlayers = players.filter((p) => p.rank <= TOP_PLAYERS_SHOWN);
   const selectedProjection =
     players.find((p) => p.player_id === selectedPlayer?.player_id) ?? null;
 
@@ -75,6 +80,19 @@ function Index() {
             isLoading={projectionsQuery.isLoading}
             error={projectionsQuery.error as Error | null}
           />
+
+          {topPlayers.length > 0 && (
+            <section className="space-y-2">
+              <h2 className="text-sm font-medium">
+                Top {TOP_PLAYERS_SHOWN} receivers by season PPR points
+              </h2>
+              <TopPlayersTable
+                players={topPlayers}
+                selectedPlayerId={selectedPlayer?.player_id ?? null}
+                onSelect={setSelectedPlayer}
+              />
+            </section>
+          )}
         </div>
       </main>
     </div>
