@@ -2,8 +2,8 @@ from datetime import datetime
 
 import polars as pl
 
-from wr_predictor import features
-from wr_predictor.predictions import add_rank, not_yet_kicked_off, season_points, upsert_log
+from wr_predictor import features, predictions
+from wr_predictor.predictions import add_rank, check_gate, not_yet_kicked_off, season_points, upsert_log
 
 """
 Uses Pytest to verify the prediction log and scoring rules, plus the rolling
@@ -69,6 +69,41 @@ def test_upsert_log_replaces_same_game_and_keeps_other_rows(tmp_path) -> None:
     assert result["pred_ppr_points"].to_list() == [10.0, 12.0]
 
 
+def _score(week: int, mae: float = 5.0, baseline_mae: float = 6.0, correlation: float = 0.5, predicted: int = 20) -> dict:
+    """Build one week's score with passing values unless a test overrides them."""
+    return {
+        "week": week,
+        "predicted": predicted,
+        "played": 18,
+        "ppr_points_mae": mae,
+        "ppr_points_baseline_mae": baseline_mae,
+        "rank_correlation": correlation,
+    }
+
+
+def test_check_gate_passes_with_four_good_finished_weeks() -> None:
+    gate = check_gate([_score(w) for w in (1, 2, 3, 4)], completed_weeks=[1, 2, 3, 4])
+
+    assert gate["passed"] is True
+    assert gate["weeks"] == [1, 2, 3, 4]
+
+
+def test_check_gate_needs_enough_finished_weeks() -> None:
+    # Week 4 isn't finished, so only three weeks qualify.
+    gate = check_gate([_score(w) for w in (1, 2, 3, 4)], completed_weeks=[1, 2, 3])
+
+    assert gate["passed"] is False
+    assert "has 3" in gate["reason"]
+
+
+def test_check_gate_fails_each_check_independently() -> None:
+    weeks = [1, 2, 3, 4]
+
+    assert check_gate([_score(w, mae=7.0) for w in weeks], weeks)["beats_baseline"] is False
+    assert check_gate([_score(w, correlation=0.1) for w in weeks], weeks)["ranks_well"] is False
+    assert check_gate([_score(w, predicted=19) for w in weeks], weeks)["all_predictions_made"] is False
+
+
 def test_add_rank_breaks_ties_the_same_way_regardless_of_input_order() -> None:
     points = pl.DataFrame({"player_id": ["A", "B"], "season_points": [50.0, 50.0]})
 
@@ -76,3 +111,33 @@ def test_add_rank_breaks_ties_the_same_way_regardless_of_input_order() -> None:
     second = add_rank(pl.DataFrame({"player_id": ["B", "A"]}), points)
 
     assert first.sort("player_id")["rank"].to_list() == second.sort("player_id")["rank"].to_list()
+
+
+def test_score_predictions_scores_top_players_only_and_counts_who_played(monkeypatch) -> None:
+    monkeypatch.setattr(predictions, "TOP_N", 2)
+    log = pl.DataFrame(
+        {
+            "season": [2026] * 3,
+            "week": [5] * 3,
+            "player_id": ["A", "B", "C"],
+            "season_points": [90.0, 80.0, 10.0],
+            **{f"pred_{s}": [10.0, 5.0, 1.0] for s in predictions.PREDICTED_STATS},
+            **{f"base_{s}": [8.0, 8.0, 1.0] for s in predictions.PREDICTED_STATS},
+        }
+    )
+    # C is outside the top players and has no effect; B's actual is off by 1, A's by 2.
+    actuals = pl.DataFrame(
+        {
+            "season": [2026] * 3,
+            "week": [5] * 3,
+            "player_id": ["A", "B", "C"],
+            **{s: [12.0, 4.0, 500.0] for s in predictions.PREDICTED_STATS},
+        }
+    )
+
+    score = predictions.score_predictions(log, actuals)[0]
+
+    assert score["predicted"] == 2
+    assert score["ppr_points_mae"] == 1.5
+    assert score["ppr_points_baseline_mae"] == 4.0
+    assert score["rank_correlation"] == 1.0

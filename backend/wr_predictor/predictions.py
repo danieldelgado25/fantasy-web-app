@@ -5,12 +5,21 @@ from pathlib import Path
 
 import polars as pl
 
-from wr_predictor.stats import PREDICTED_STATS
+from wr_predictor.stats import POINTS_STAT, PREDICTED_STATS
 
 """
-The prediction log. Predictions are saved before kickoff, so they can be compared
-with actual results afterwards.
+The prediction log and how it gets scored. Predictions are saved before kickoff
+and compared with actual results afterwards, using only the top players as they
+stood when the prediction was made.
 """
+
+# How many top-ranked players are displayed and scored.
+TOP_N = 20
+
+# Passing bar: over this many finished weeks, every prediction is made, average
+# error beats the baseline, and rankings correlate with actual results at least this well.
+GATE_WINDOW_WEEKS = 4
+GATE_MIN_RANK_CORRELATION = 0.3
 
 # Columns that identify a logged prediction.
 LOG_KEY = ["season", "week", "player_id"]
@@ -82,3 +91,64 @@ def upsert_log(path: str, rows: pl.DataFrame) -> pl.DataFrame:
     rows = rows.sort(LOG_KEY)
     rows.write_csv(log_path)
     return rows
+
+
+def score_predictions(log: pl.DataFrame, actuals: pl.DataFrame) -> list[dict]:
+    """
+    Score each week's top players against actual results, one dict per week.
+    `actuals` holds LOG_KEY plus one column per predicted stat. Players with no
+    actual result, usually because they didn't play, count as predicted but not scored.
+    The top players are picked from those with a game that week using their logged
+    season points, so byes can't leave a week short and nothing later affects the pick.
+    """
+    scores = []
+    for week in sorted(log["week"].unique().to_list()):
+        cohort = (
+            log.filter(pl.col("week") == week)
+            .sort(["season_points", "player_id"], descending=[True, False])
+            .head(TOP_N)
+        )
+        played = cohort.join(actuals, on=LOG_KEY, how="inner", suffix="_actual")
+        score = {"week": week, "predicted": cohort.height, "played": played.height}
+        if played.height >= 2:
+            for stat in PREDICTED_STATS:
+                score[f"{stat}_mae"] = _mean_abs_error(played, f"pred_{stat}", stat)
+                score[f"{stat}_baseline_mae"] = _mean_abs_error(played, f"base_{stat}", stat)
+            score["rank_correlation"] = played.select(pl.corr(f"pred_{POINTS_STAT}", POINTS_STAT, method="spearman")).item()
+        scores.append(score)
+    return scores
+
+
+def _mean_abs_error(frame: pl.DataFrame, predicted: str, actual: str) -> float:
+    """Average absolute difference between two columns."""
+    return frame.select((pl.col(predicted) - pl.col(actual)).abs().mean()).item()
+
+
+def check_gate(scores: list[dict], completed_weeks: list[int]) -> dict:
+    """
+    Apply the passing bar to the latest finished weeks. Unfinished weeks are ignored
+    because their results are incomplete. Returns each check so a failure explains itself.
+    """
+    finished = [s for s in scores if s["week"] in completed_weeks and "rank_correlation" in s]
+    recent = finished[-GATE_WINDOW_WEEKS:]
+    if len(recent) < GATE_WINDOW_WEEKS:
+        return {"passed": False, "reason": f"needs {GATE_WINDOW_WEEKS} finished weeks, has {len(recent)}"}
+
+    played = sum(s["played"] for s in recent)
+    mae = sum(s[f"{POINTS_STAT}_mae"] * s["played"] for s in recent) / played
+    baseline_mae = sum(s[f"{POINTS_STAT}_baseline_mae"] * s["played"] for s in recent) / played
+    rank_correlation = sum(s["rank_correlation"] for s in recent) / len(recent)
+
+    checks = {
+        "all_predictions_made": all(s["predicted"] == TOP_N for s in recent),
+        "beats_baseline": mae < baseline_mae,
+        "ranks_well": rank_correlation >= GATE_MIN_RANK_CORRELATION,
+    }
+    return {
+        "passed": all(checks.values()),
+        "weeks": [s["week"] for s in recent],
+        "mae": round(mae, 3),
+        "baseline_mae": round(baseline_mae, 3),
+        "rank_correlation": round(rank_correlation, 3),
+        **checks,
+    }
