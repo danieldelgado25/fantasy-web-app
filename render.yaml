@@ -1,3 +1,5 @@
+# DEPRECATED: flagged for manual removal. Projections are now published as a static
+# file by .github/workflows/refresh-projections.yml, so no backend host is needed.
 services:
   - type: web
     name: fantasy-wr-api

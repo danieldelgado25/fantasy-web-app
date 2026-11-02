@@ -8,6 +8,9 @@ from flask import Blueprint, jsonify, request
 from wr_predictor.model import load_model, predict_next_week
 
 """
+DEPRECATED, along with app.py and test_routes.py: flagged for manual removal. The
+website now reads a static file written by train.py. This still runs locally.
+
 HTTP route definitions. This module only translates requests/responses —
 it must not contain modeling or data-pipeline logic; that stays in
 wr_predictor and gets imported here, not reimplemented here.

@@ -1,21 +1,41 @@
-# Redeploys the backend daily, because train.py runs during Render's build:
-# each deploy pulls fresh stats, schedule and roster data and retrains. If that
-# build fails, Render keeps serving the last good deploy.
+# Daily during the NFL season: retrains on fresh data, then commits the projections
+# and prediction log. The commit is what publishes them, because the website is
+# rebuilt on each push. If training fails, nothing is committed and the site keeps
+# its last good data.
 name: Refresh projections
 
 on:
   schedule:
-    # 10:00 UTC, once overnight stats from the previous day's games have had time to land.
-    # September through February only: there are no games to refresh in the offseason.
+    # 10:00 UTC is before every kickoff that day, and gives stats from the previous
+    # day's games time to land. September through February only: no games otherwise.
     - cron: "0 10 * 1,2,9-12 *"
   # Allows a manual refresh from the GitHub Actions tab.
   workflow_dispatch:
 
+# Needed to push the commit below.
+permissions:
+  contents: write
+
 jobs:
-  redeploy:
+  refresh:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Render deploy hook
-        run: curl --fail --silent --show-error --request POST "$RENDER_DEPLOY_HOOK"
-        env:
-          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+      - name: Train and write projections
+        working-directory: backend
+        run: python train.py
+      - name: Score predictions against actual results
+        working-directory: backend
+        run: python evaluate.py
+      - name: Commit any changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend/predictions frontend/public/data
+          git diff --cached --quiet || git commit -m "Refresh projections and prediction log"
+          git push
