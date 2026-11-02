@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AccuracyPanel } from "@/components/AccuracyPanel";
 import { PlayerSearch } from "@/components/PlayerSearch";
 import { ProjectionPanel } from "@/components/ProjectionPanel";
+import { ProjectLog } from "@/components/ProjectLog";
 import { TopPlayersTable } from "@/components/TopPlayersTable";
 import { fetchAccuracy, fetchProjections, type Player } from "@/lib/api";
 
@@ -108,6 +109,9 @@ function Index() {
 
           {/* Accuracy is secondary, so if it fails to load the projections still show. */}
           {accuracyQuery.data && <AccuracyPanel accuracy={accuracyQuery.data} />}
+
+          <ProjectLog />
+
         </div>
       </main>
     </div>

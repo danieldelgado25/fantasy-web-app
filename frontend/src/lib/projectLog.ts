@@ -1,0 +1,78 @@
+/** One entry in the public record of how the project has changed and why. */
+export interface ProjectLogEntry {
+  /** When the change was made, as YYYY-MM-DD. */
+  date: string;
+  /** What changed or was tested. */
+  title: string;
+  /** The reason for doing it. */
+  why: string;
+  /** What was measured or decided as a result. */
+  result: string;
+}
+
+/** Public source code, so visitors can check the work behind each entry. */
+export const REPOSITORY_URL = "https://github.com/danieldelgado25/fantasy-web-app";
+
+/**
+ * Newest first. Add an entry whenever the model, its evaluation or the site changes in a
+ * way worth explaining, including tests that didn't work out. MAE is the average miss, so
+ * lower is better. Ranking is how well players were ordered, from -1 to 1.
+ */
+export const PROJECT_LOG: ProjectLogEntry[] = [
+  {
+    date: "2026-11-02",
+    title: "Security review before going public",
+    why: "The deployment platform blocked the build over a critical cross-site scripting flaw in the web framework.",
+    result:
+      "Upgraded the framework rather than using the override to deploy anyway. Scanned the full git history for secrets, found none, and updated the build tools with known issues.",
+  },
+  {
+    date: "2026-11-02",
+    title: "Tested 10 groups of player-opportunity data",
+    why: "The model ranks volume (catches 0.38) better than touchdowns (0.18), so better opportunity data looked like the next thing to try.",
+    result:
+      "None beat the normal week-to-week noise, so none were added. Expected production and teammates ruled out stay under consideration.",
+  },
+  {
+    date: "2026-11-02",
+    title: "Tested past prediction errors and other algorithms",
+    why: "To find out whether the model could learn from how far off it had been, or whether a more complex algorithm would do better.",
+    result:
+      "Neither clearly improved on Ridge regression across 2023-2025 and 2026, so the simpler model stayed. Touchdowns account for many of the biggest misses.",
+  },
+  {
+    date: "2026-11-02",
+    title: "Replaced a ranking target that was wrong",
+    why: "I had set a fixed ranking score of 0.30. Over 2023-2025, a 4-week average swung from 0.05 to 0.37, so passing would have been largely luck.",
+    result:
+      "The model must now beat a simple last-3-games average, which it did in 80% of past 4-week windows. Prediction tracking now scores against this bar.",
+  },
+  {
+    date: "2026-11-02",
+    title: "Added next-game context the correct way",
+    why: "Home or away, dome and betting lines had been removed because training used the game just played, while predictions used the next game.",
+    result:
+      "Training now uses the game being predicted. Over 2023-2025, ranking rose from 0.241 to 0.258 and MAE fell from 6.712 to 6.673: a small gain, but the only input that helped in both periods tested.",
+  },
+  {
+    date: "2026-11-02",
+    title: "Started saving predictions before kickoff",
+    why: "Scoring a model on past games is useful, but only predictions saved in advance prove what it could really do.",
+    result:
+      "Each prediction is committed to the public repository and freezes at kickoff, so the history shows it wasn't edited afterwards. Scoring begins with week 9 of 2026.",
+  },
+  {
+    date: "2026-11-01",
+    title: "Corrected the baseline and switched to official scoring",
+    why: "Averages were skipping each player's latest game, and the points formula left out rushing, fumbles and 2-point conversions.",
+    result:
+      "On the 2025 season, baseline MAE improved from 4.97 to 4.94 and the model's from 4.68 to 4.67. Points now match official PPR totals.",
+  },
+  {
+    date: "2026-11-01",
+    title: "Removed weather from the model",
+    why: "Game-time weather isn't known before kickoff, which conflicts with the project's rule against using future information.",
+    result:
+      "Accuracy was unchanged on the same 2025 games (MAE 4.676 vs 4.675), and usable training rows rose from 6,117 to 10,640.",
+  },
+];
