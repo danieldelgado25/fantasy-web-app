@@ -22,6 +22,9 @@ TOP_N = 20
 # largely luck, while the model out-ranked the baseline in 80% of those windows.
 GATE_WINDOW_WEEKS = 4
 
+# Stats shown in the weekly predicted-vs-actual review.
+REVIEW_STATS = ["targets", "rec", POINTS_STAT]
+
 # Columns that identify a logged prediction.
 LOG_KEY = ["season", "week", "player_id"]
 
@@ -94,6 +97,29 @@ def upsert_log(path: str, rows: pl.DataFrame) -> pl.DataFrame:
     return rows
 
 
+def _top_players(log: pl.DataFrame, week: int) -> pl.DataFrame:
+    """A week's scored players: those with a game that week, best season points first."""
+    return log.filter(pl.col("week") == week).sort(["season_points", "player_id"], descending=[True, False]).head(TOP_N)
+
+
+def build_review(log: pl.DataFrame, actuals: pl.DataFrame) -> pl.DataFrame:
+    """
+    One row per top player per week, with predicted and actual values for each reviewed
+    stat. A positive difference means the player beat the projection. Players who didn't
+    play stay in the table with blank actuals, so a missed game is visible.
+    """
+    weeks = [_top_players(log, week) for week in sorted(log["week"].unique().to_list())]
+    joined = pl.concat(weeks).join(actuals.select(*LOG_KEY, *REVIEW_STATS), on=LOG_KEY, how="left")
+    stat_columns = []
+    for stat in REVIEW_STATS:
+        stat_columns += [
+            pl.col(f"pred_{stat}"),
+            pl.col(stat).round(2).alias(f"actual_{stat}"),
+            (pl.col(stat) - pl.col(f"pred_{stat}")).round(2).alias(f"diff_{stat}"),
+        ]
+    return joined.select("week", "player_name", "team", "opponent_team", "season_points", *stat_columns)
+
+
 def score_predictions(log: pl.DataFrame, actuals: pl.DataFrame) -> list[dict]:
     """
     Score each week's top players against actual results, one dict per week.
@@ -104,11 +130,7 @@ def score_predictions(log: pl.DataFrame, actuals: pl.DataFrame) -> list[dict]:
     """
     scores = []
     for week in sorted(log["week"].unique().to_list()):
-        cohort = (
-            log.filter(pl.col("week") == week)
-            .sort(["season_points", "player_id"], descending=[True, False])
-            .head(TOP_N)
-        )
+        cohort = _top_players(log, week)
         played = cohort.join(actuals, on=LOG_KEY, how="inner", suffix="_actual")
         score = {"week": week, "predicted": cohort.height, "played": played.height}
         if played.height >= 2:
