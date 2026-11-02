@@ -35,10 +35,11 @@ Done when: week 9 predictions are on GitHub before kickoff and the daily job run
 Done when: every push is checked and failures are visible. For now, merge only after a green check.
 
 ### Phase 5: Prove the model (weeks 9-12 live, first verdict after Nov 30)
-- [ ] Review each finished week: predicted vs actual targets, catches and points
+- [x] Add a weekly predicted-vs-actual table for targets, catches and points (`backend/predictions/<season>_review.csv`)
+- [ ] Review each finished week using that table
 - [x] Replace the fixed 0.30 ranking bar with beating the baseline's ranking
 - [x] Add next-game context back, with training and serving using the same game
-- [ ] Test past-error features and other model types, keeping only what beats the current model
+- [x] Test past-error features and other model types: nothing beat the current model, so it stays unchanged for the live weeks
 - [ ] Pass the bar on four finished live weeks: 20 of 20 predictions, and better than the baseline on both MAE and ranking
 
 Done when: `backend/predictions/2026_report.json` shows the live gate passed. A model change restarts the four-week window, so week 15 is the last week a new window can start this season.
@@ -56,6 +57,9 @@ Findings so far, walking forward through 2023-2025 (54 weeks) for each week's to
 - Next-game context (home or away, dome, game total, implied team total) was the only input that helped in both periods, by about 0.02-0.03, which isn't conclusive on its own. It's now in the model.
 - Season form and opponent defense added almost nothing, and gradient boosting did no better than Ridge.
 - With next-game context, the replay of weeks 4-7 passes: ranking 0.24 vs a baseline of 0.15, MAE 6.92 vs 8.43. Live weeks are what count.
+- Past-error features didn't help. Using errors from predictions made before each game, and training on identical rows, ranking changed by -0.007 to +0.003 (within noise) and points MAE got worse by 0.035-0.045 over 2023-2025. Targets and catches were effectively unchanged, and 2026 showed the same pattern. Weekly retraining already learns from each result. Revisit with more data, or if the live review shows a player's misses persisting.
+- Stronger regularization, ElasticNet, random forest, boosted trees and a Ridge-plus-boosted blend all stayed within noise of Ridge (over 2023-2025, ranking at most +0.008 and MAE at most 0.015 better). Random forest was slightly ahead in both 2023-2025 and 2026, but by much less than the noise, so it isn't worth the added complexity yet.
+- The model ranks volume better than scoring: in the replay of weeks 2-7, catches 0.38, targets 0.34, points 0.32, yards 0.26, touchdowns 0.18. Better opportunity data is more promising than a different algorithm.
 
 ## When something fails
 
