@@ -70,6 +70,19 @@ def prepare_model_frame(data_frame: pl.DataFrame, feature_columns: list[str]) ->
     return cleaned
 
 
+def prepare_inference_frame(snapshot: pl.DataFrame, feature_columns: list[str]) -> pl.DataFrame:
+    """
+    Drop snapshot rows the model can't score: a null feature would make it raise
+    at request time. Happens for a player with no earlier game to build lag
+    features from. Reports the count so it stays visible.
+    """
+    cleaned = snapshot.drop_nulls(subset=feature_columns)
+    dropped = snapshot.height - cleaned.height
+    if dropped:
+        print(f"Dropped {dropped} of {snapshot.height} snapshot rows with missing feature values.")
+    return cleaned
+
+
 def evaluate_baseline(validation: pl.DataFrame) -> dict[str, float]:
     """
     Naive baseline: predict next week's points as this week's trailing

@@ -22,7 +22,7 @@ api_blueprint = Blueprint("api", __name__, url_prefix="/api")
 _BACKEND_ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH = _BACKEND_ROOT / "models" / "wr_ridge.joblib"
 SNAPSHOT_PATH = _BACKEND_ROOT / "data" / "processed" / "wr_latest_snapshot.parquet"
-MODEL_VERSION = "ridge-v1"
+MODEL_VERSION = "ridge-v2"
 
 _model = None
 _feature_columns: list[str] | None = None

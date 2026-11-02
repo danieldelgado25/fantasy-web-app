@@ -184,7 +184,7 @@ def attach_next_game_context(snapshot: pl.DataFrame, seasons: list[int]) -> pl.D
     if sched.is_empty():
         return snapshot.clear()
 
-    keep = [c for c in ("season", "week", "home_team", "away_team", "spread_line", "total_line", "roof", "temp", "wind") if c in sched.columns]
+    keep = [c for c in ("season", "week", "home_team", "away_team", "spread_line", "total_line", "roof") if c in sched.columns]
     sched = sched.select(keep)
 
     home_view = sched.rename({"home_team": "team", "away_team": "opponent_team"}).with_columns(pl.lit(1).cast(pl.Int8).alias("is_home"))
@@ -199,7 +199,7 @@ def attach_next_game_context(snapshot: pl.DataFrame, seasons: list[int]) -> pl.D
 
     team_schedule = team_schedule.rename({"season": "next_season", "week": "next_week"})
 
-    stale_cols = [c for c in ("opponent_team", "spread_line", "total_line", "is_home", "is_dome", "temp", "wind") if c in snapshot.columns]
+    stale_cols = [c for c in ("opponent_team", "spread_line", "total_line", "is_home", "is_dome") if c in snapshot.columns]
     anchor = snapshot.drop(stale_cols).rename({"season": "last_season", "week": "last_week"})
 
     joined = anchor.join(team_schedule, on="team", how="left")
@@ -311,8 +311,6 @@ def _merge_schedule_context(weekly: pl.DataFrame, seasons: list[int]) -> pl.Data
             "total_line",
             "roof",
             "surface",
-            "temp",
-            "wind",
         )
         if c in sched.columns
     ]

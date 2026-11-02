@@ -116,6 +116,11 @@ def select_model_columns(
     extra_feature_cols = extra_feature_cols or []
     target_col = "next_week_ppr_points"
     # PPR first, then receptions / targets / yardage-style history, rolls grouped the same way.
+    # temp/wind are deliberately absent: game-time weather isn't known before kickoff, and
+    # nflverse leaves it null for upcoming and most indoor games.
+    # is_home/is_dome/spread_line/total_line are also absent: on a training row they describe
+    # the game just played, while serving would pass the next game's values, and betting lines
+    # are often not posted yet. See ROADMAP.md for adding them back properly.
     keep_if_exists = [
         "player_id",
         "player_name",
@@ -126,12 +131,6 @@ def select_model_columns(
         "team",
         "opponent_team",
         "home_away",
-        "is_home",
-        "is_dome",
-        "spread_line",
-        "total_line",
-        "temp",
-        "wind",
         "ppr_points",
         "ppr_points_prev_week",
         "ppr_points_minus_roll3",
