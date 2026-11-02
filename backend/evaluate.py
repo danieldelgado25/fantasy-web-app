@@ -18,7 +18,7 @@ from wr_predictor.model import (
     prepare_model_frame,
     train_stat_models,
 )
-from wr_predictor.predictions import add_rank, build_log_rows, check_gate, score_predictions, season_points, TOP_N
+from wr_predictor.predictions import add_rank, build_log_rows, build_review, check_gate, score_predictions, season_points, TOP_N
 from wr_predictor.stats import NEXT_GAME_CONTEXT, POINTS_STAT, PREDICTED_STATS
 
 """
@@ -106,7 +106,10 @@ def main() -> None:
     report = {"season": season, "completed_weeks": completed_weeks}
     for label, path in (("live", live_path), ("replay", replay_path)):
         if os.path.exists(path):
-            scores = score_predictions(pl.read_csv(path), actuals)
+            log = pl.read_csv(path)
+            # A plain table of predicted vs actual, readable on GitHub.
+            build_review(log, actuals).write_csv(path.removesuffix(".csv") + "_review.csv")
+            scores = score_predictions(log, actuals)
             gate = check_gate(scores, completed_weeks)
             print_scores(f"{label} predictions ({path})", scores, gate)
             report[label] = {"scores": scores, "gate": gate}
