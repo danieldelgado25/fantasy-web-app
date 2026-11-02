@@ -19,13 +19,15 @@ def build_training_dataset(
     output_path: str | None = None,
     position: str = "WR",
     merge_ff_opportunity: bool = False,
+    before: tuple[int, int] | None = None,
 ) -> pl.DataFrame:
     """
     Build the WR training dataset: load stats, filter to position, add features
     and next-week target, apply min-games filter, optionally write CSV.
+    `before` (season, week) keeps only earlier games, to replay a past week.
     """
     # Load weekly stats and player metadata
-    weekly = data_loader.load_player_weekly_stats(seasons)
+    weekly = _games_before(data_loader.load_player_weekly_stats(seasons), before)
     players = data_loader.load_players()
 
     # Normalize column names from nflreadpy (receptions, receiving_yards, receiving_tds) to our names
@@ -100,6 +102,7 @@ def build_latest_snapshot(
     position: str = "WR",
     merge_ff_opportunity: bool = False,
     output_path: str | None = None,
+    before: tuple[int, int] | None = None,
 ) -> pl.DataFrame:
     """
     Build one row per player: their most recent game's feature values, with
@@ -111,8 +114,9 @@ def build_latest_snapshot(
     No min_games_for_player filter here on purpose — a live projection
     should still be produced for a rookie or a player back from injury
     who wouldn't clear a minimum-games bar this season.
+    `before` (season, week) keeps only earlier games, to replay a past week.
     """
-    weekly = data_loader.load_player_weekly_stats(seasons)
+    weekly = _games_before(data_loader.load_player_weekly_stats(seasons), before)
     players = data_loader.load_players()
 
     weekly = _normalize_receiving_columns(weekly)
@@ -214,7 +218,7 @@ def attach_next_game_context(snapshot: pl.DataFrame, seasons: list[int]) -> pl.D
     if sched.is_empty():
         return snapshot.clear()
 
-    keep = [c for c in ("season", "week", "home_team", "away_team", "spread_line", "total_line", "roof") if c in sched.columns]
+    keep = [c for c in ("season", "week", "home_team", "away_team", "spread_line", "total_line", "roof", "gameday", "gametime") if c in sched.columns]
     sched = sched.select(keep)
 
     home_view = sched.rename({"home_team": "team", "away_team": "opponent_team"}).with_columns(pl.lit(1).cast(pl.Int8).alias("is_home"))
@@ -244,6 +248,17 @@ def attach_next_game_context(snapshot: pl.DataFrame, seasons: list[int]) -> pl.D
     )
 
     return joined.drop(["last_season", "last_week"]).rename({"next_season": "season", "next_week": "week"})
+
+
+def _games_before(weekly: pl.DataFrame, before: tuple[int, int] | None) -> pl.DataFrame:
+    """
+    Keep only games before (season, week). Applied right after loading, so a replay
+    can't leak: lags, averages and targets never see the games it is predicting.
+    """
+    if before is None:
+        return weekly
+    season, week = before
+    return weekly.filter((pl.col("season") < season) | ((pl.col("season") == season) & (pl.col("week") < week)))
 
 
 def _normalize_receiving_columns(data_frame: pl.DataFrame) -> pl.DataFrame:
