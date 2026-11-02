@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { PlayerSearch } from "@/components/PlayerSearch";
 import { ProjectionPanel } from "@/components/ProjectionPanel";
-import { fetchPlayers, fetchProjection, type Player } from "@/lib/api";
+import { fetchProjections, type Player } from "@/lib/api";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -31,16 +31,14 @@ export const Route = createFileRoute("/")({
 function Index() {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
-  const playersQuery = useQuery({
-    queryKey: ["players"],
-    queryFn: fetchPlayers,
+  const projectionsQuery = useQuery({
+    queryKey: ["projections"],
+    queryFn: fetchProjections,
   });
 
-  const projectionQuery = useQuery({
-    queryKey: ["projection", selectedPlayer?.player_id],
-    queryFn: () => fetchProjection(selectedPlayer!.player_id),
-    enabled: !!selectedPlayer,
-  });
+  const players = projectionsQuery.data?.players ?? [];
+  const selectedProjection =
+    players.find((p) => p.player_id === selectedPlayer?.player_id) ?? null;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -65,17 +63,17 @@ function Index() {
               Select a player
             </label>
             <PlayerSearch
-              players={playersQuery.data ?? []}
+              players={players}
               selectedPlayer={selectedPlayer}
               onSelect={setSelectedPlayer}
-              disabled={playersQuery.isLoading}
+              disabled={projectionsQuery.isLoading}
             />
           </div>
 
           <ProjectionPanel
-            projection={projectionQuery.data ?? null}
-            isLoading={projectionQuery.isLoading}
-            error={(playersQuery.error ?? projectionQuery.error) as Error | null}
+            projection={selectedProjection}
+            isLoading={projectionsQuery.isLoading}
+            error={projectionsQuery.error as Error | null}
           />
         </div>
       </main>
