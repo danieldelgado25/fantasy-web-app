@@ -17,6 +17,16 @@ Not scheduled — needs a decision on approach before work starts. The current m
 
 Revisit once there's a clearer view on which trade-off is acceptable.
 
+## Deferred: game-context features
+
+`is_home`, `is_dome`, `spread_line` and `total_line` were removed from the model. On a training row they described the game just played, while serving passed the next game's values, and betting lines are often not posted for the next game yet. Removing them didn't hurt the 2025 backtest (MAE 4.680 vs 4.685).
+
+Add them back with the wider player dataset, and only if they beat the model without them. To add them properly, a training row must carry the context of the game its target comes from, and missing lines need an explicit rule.
+
+## Future feature: roster-based pivots
+
+Rosters add a layer of organization beyond position rankings: when a top player is hurt, show who else on that team to pivot to. `filter_to_active_roster` already loads the weekly roster data this would build on. Not scheduled.
+
 ## Future feature: player news monitor
 
 Not buildable yet — noted here so the design isn't lost before it's picked up.
