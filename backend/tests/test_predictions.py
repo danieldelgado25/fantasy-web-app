@@ -121,6 +121,18 @@ def test_add_rank_breaks_ties_the_same_way_regardless_of_input_order() -> None:
     assert first.sort("player_id")["rank"].to_list() == second.sort("player_id")["rank"].to_list()
 
 
+def test_summarize_accuracy_keeps_finished_weeks_and_replaces_undefined_values() -> None:
+    finished = _score(1, baseline_correlation=float("nan"))
+    unfinished = _score(2)
+
+    summary = predictions.summarize_accuracy([finished, unfinished], {"passed": False, "reason": "too few"}, completed_weeks=[1])
+
+    assert [week["week"] for week in summary["weeks"]] == [1]
+    # A NaN would make the JSON file unreadable in the browser.
+    assert summary["weeks"][0]["baseline_rank_correlation"] is None
+    assert summary["reason"] == "too few"
+
+
 def test_build_review_shows_differences_and_keeps_players_who_did_not_play() -> None:
     log = pl.DataFrame(
         {

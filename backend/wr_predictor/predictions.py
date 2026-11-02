@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from datetime import datetime
 from pathlib import Path
 
@@ -141,6 +142,33 @@ def score_predictions(log: pl.DataFrame, actuals: pl.DataFrame) -> list[dict]:
             score["baseline_rank_correlation"] = _rank_correlation(played, f"base_{POINTS_STAT}")
         scores.append(score)
     return scores
+
+
+def summarize_accuracy(scores: list[dict], gate: dict, completed_weeks: list[int]) -> dict:
+    """
+    Reduce scores to what the website shows: points accuracy for finished weeks only,
+    since an unfinished week's results are incomplete. Undefined values become None,
+    because a NaN would make the whole JSON file unreadable in the browser.
+    """
+    weeks = [
+        {
+            "week": s["week"],
+            "predicted": s["predicted"],
+            "played": s["played"],
+            "mae": _round_or_none(s[f"{POINTS_STAT}_mae"]),
+            "baseline_mae": _round_or_none(s[f"{POINTS_STAT}_baseline_mae"]),
+            "rank_correlation": _round_or_none(s["rank_correlation"]),
+            "baseline_rank_correlation": _round_or_none(s["baseline_rank_correlation"]),
+        }
+        for s in scores
+        if s["week"] in completed_weeks and "rank_correlation" in s
+    ]
+    return {"weeks": weeks, "passed": gate["passed"], "reason": gate.get("reason")}
+
+
+def _round_or_none(value: float | None) -> float | None:
+    """Round for display, turning a missing or undefined number into None."""
+    return None if value is None or math.isnan(value) else round(value, 2)
 
 
 def _mean_abs_error(frame: pl.DataFrame, predicted: str, actual: str) -> float:

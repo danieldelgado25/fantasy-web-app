@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+from datetime import datetime, timezone
 
 import nflreadpy as nfl
 import polars as pl
@@ -18,7 +19,16 @@ from wr_predictor.model import (
     prepare_model_frame,
     train_stat_models,
 )
-from wr_predictor.predictions import add_rank, build_log_rows, build_review, check_gate, score_predictions, season_points, TOP_N
+from wr_predictor.predictions import (
+    add_rank,
+    build_log_rows,
+    build_review,
+    check_gate,
+    score_predictions,
+    season_points,
+    summarize_accuracy,
+    TOP_N,
+)
 from wr_predictor.stats import NEXT_GAME_CONTEXT, POINTS_STAT, PREDICTED_STATS
 
 """
@@ -30,6 +40,9 @@ live log proves predictions were made ahead of time.
 """
 
 PREDICTIONS_DIR = "predictions"
+
+# Served as a static file by the frontend.
+ACCURACY_PATH = "../frontend/public/data/accuracy.json"
 
 
 def load_actuals(stats: pl.DataFrame) -> pl.DataFrame:
@@ -104,6 +117,13 @@ def main() -> None:
 
     actuals = load_actuals(stats)
     report = {"season": season, "completed_weeks": completed_weeks}
+    # Live starts empty, so the website can say tracking hasn't produced results yet.
+    accuracy = {
+        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "season": season,
+        "top_n": TOP_N,
+        "live": {"weeks": [], "passed": False, "reason": "no finished weeks yet"},
+    }
     for label, path in (("live", live_path), ("replay", replay_path)):
         if os.path.exists(path):
             log = pl.read_csv(path)
@@ -113,10 +133,15 @@ def main() -> None:
             gate = check_gate(scores, completed_weeks)
             print_scores(f"{label} predictions ({path})", scores, gate)
             report[label] = {"scores": scores, "gate": gate}
+            accuracy[label] = summarize_accuracy(scores, gate, completed_weeks)
 
     os.makedirs(PREDICTIONS_DIR, exist_ok=True)
     with open(os.path.join(PREDICTIONS_DIR, f"{season}_report.json"), "w", encoding="utf-8") as report_file:
         json.dump(report, report_file, indent=2)
+
+    os.makedirs(os.path.dirname(ACCURACY_PATH), exist_ok=True)
+    with open(ACCURACY_PATH, "w", encoding="utf-8") as accuracy_file:
+        json.dump(accuracy, accuracy_file, indent=1)
 
 
 if __name__ == "__main__":
