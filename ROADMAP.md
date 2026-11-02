@@ -19,8 +19,8 @@ Check items off as they land. Deployment waits on Phase 5, because proving the p
 
 ### Phase 3: Start live logging (deadline: before the Nov 5 kickoff)
 - [x] Push `deploy-readiness`
-- [ ] Merge it to `main`
-- [ ] Run the refresh workflow by hand from the GitHub Actions tab
+- [x] Merge it to `main`
+- [ ] Run the refresh workflow by hand from the GitHub Actions tab, or wait for the 10:00 UTC run
 - [ ] Confirm its commit updated `backend/predictions/2026.csv` and `projections.json`
 - [ ] Confirm the next scheduled daily run works
 
@@ -29,16 +29,17 @@ Done when: week 9 predictions are on GitHub before kickoff and the daily job run
 ### Phase 4: CI
 - [x] Run backend tests, the frontend type check and the build on every push
 - [x] Push a deliberately failing branch to prove CI catches it
-- [ ] Decide how to enforce CI before merging to `main`
+- [x] Decide how to enforce CI: not yet, revisited in Phase 6
 - [x] Write down what to do when CI or the daily job fails (see "When something fails")
 
-Done when: a broken change can't reach `main`. GitHub's required checks would also reject the daily job's direct commits to `main`, so turning them on as they are would stop the refresh.
+Done when: every push is checked and failures are visible. For now, merge only after a green check.
 
 ### Phase 5: Prove the model (weeks 9-12 live, first verdict after Nov 30)
 - [ ] Review each finished week: predicted vs actual targets, catches and points
-- [ ] Improve ranking, currently 0.23 against the 0.30 bar
-- [ ] Test past-error features, game context and other model types, keeping only what beats the current model
-- [ ] Pass the bar on four finished live weeks: 20 of 20 predictions, MAE better than baseline, ranking at least 0.30
+- [x] Replace the fixed 0.30 ranking bar with beating the baseline's ranking
+- [x] Add next-game context back, with training and serving using the same game
+- [ ] Test past-error features and other model types, keeping only what beats the current model
+- [ ] Pass the bar on four finished live weeks: 20 of 20 predictions, and better than the baseline on both MAE and ranking
 
 Done when: `backend/predictions/2026_report.json` shows the live gate passed. A model change restarts the four-week window, so week 15 is the last week a new window can start this season.
 
@@ -51,9 +52,10 @@ Findings so far, walking forward through 2023-2025 (54 weeks) for each week's to
 | Current model | 0.241 | 0.268 |
 | Current model + next game's context | 0.258 | 0.297 |
 
-- The 0.30 bar looks miscalibrated: the current model's 4-week average ranges from 0.05 to 0.37 and reaches 0.30 in only 24% of windows, so passing would be largely luck. It beats the baseline's ranking in 80% of windows.
-- Next-game context (home or away, dome, game total, implied team total) is the only input that helped in both periods, by about 0.02-0.03, which isn't conclusive on its own.
+- A fixed 0.30 bar was miscalibrated: the model's 4-week average ranged from 0.05 to 0.37 and reached 0.30 in only 24% of windows, so passing would be largely luck. It beat the baseline's ranking in 80% of windows, and 87% with next-game context.
+- Next-game context (home or away, dome, game total, implied team total) was the only input that helped in both periods, by about 0.02-0.03, which isn't conclusive on its own. It's now in the model.
 - Season form and opponent defense added almost nothing, and gradient boosting did no better than Ridge.
+- With next-game context, the replay of weeks 4-7 passes: ranking 0.24 vs a baseline of 0.15, MAE 6.92 vs 8.43. Live weeks are what count.
 
 ## When something fails
 
@@ -64,6 +66,7 @@ Findings so far, walking forward through 2023-2025 (54 weeks) for each week's to
 - **Bad data got published:** revert the job's commit. Don't edit the log by hand, because its git history is what proves predictions came before kickoff.
 
 ### Phase 6: Deployment preparation
+- [ ] Decide whether to enforce CI. GitHub's required checks would also reject the daily job's direct commits to `main`, so it would need a bypass or a separate data branch
 - [ ] Set the Vercel root directory to `frontend` and create a preview deploy
 - [ ] Confirm the daily job's commit triggers a Vercel rebuild
 - [ ] Test the preview on desktop and phone
@@ -89,7 +92,7 @@ Roster-based pivots, more positions and the player news monitor, all described b
 
 ## Passing bar for the model
 
-Scored in `backend/wr_predictor/predictions.py`, over the latest 4 finished weeks for the top 20 players as ranked before each game: all 20 predictions made, MAE better than the last-3-games baseline, and rank correlation averaging at least 0.3. Prediction tracking takes priority over deploying.
+Scored in `backend/wr_predictor/predictions.py`, over the latest 4 finished weeks for the top 20 players as ranked before each game: all 20 predictions made, and better than the last-3-games baseline on both MAE and rank correlation. Prediction tracking takes priority over deploying.
 
 Past-error features ("how far off was last week") are not in the model yet. Add them only if a backtest shows they beat the model without them, since one week's miss is often just touchdown luck.
 
@@ -102,12 +105,6 @@ Not scheduled — needs a decision on approach before work starts. The current m
 3. **Heuristic estimate** — project current usage metrics (target share, air yards) forward as a steady state, adjusted for schedule/byes. Fastest v1, least statistically rigorous.
 
 Revisit once there's a clearer view on which trade-off is acceptable.
-
-## Deferred: game-context features
-
-`is_home`, `is_dome`, `spread_line` and `total_line` were removed from the model. On a training row they described the game just played, while serving passed the next game's values, and betting lines are often not posted for the next game yet. Removing them didn't hurt the 2025 backtest (MAE 4.680 vs 4.685).
-
-Add them back with the wider player dataset, and only if they beat the model without them. To add them properly, a training row must carry the context of the game its target comes from, and missing lines need an explicit rule.
 
 ## Future feature: roster-based pivots
 
