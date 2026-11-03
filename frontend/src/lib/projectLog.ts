@@ -21,6 +21,20 @@ export const REPOSITORY_URL = "https://github.com/danieldelgado25/fantasy-web-ap
 export const PROJECT_LOG: ProjectLogEntry[] = [
   {
     date: "2026-11-03",
+    title: "Made the prediction freeze an enforced rule",
+    why: "That predictions are saved before kickoff was only checkable by reading git history.",
+    result:
+      "A check now runs in CI and in the daily job before it pushes. It fails if any commit added, edited or removed a prediction for a game that had already started.",
+  },
+  {
+    date: "2026-11-03",
+    title: "Tested scaling the inputs and tuning the penalty",
+    why: "Ridge penalizes each input by its scale, so unscaled yards (0-200) and target share (0-1) were treated very differently, and the penalty was fixed at 1.0.",
+    result:
+      "Scaling with a penalty tuned by season or each week stayed within noise for each week's top 20: ranking +0.005 and MAE -0.010 over 2023-2025, then -0.004 and +0.010 on 2026. The model is unchanged.",
+  },
+  {
+    date: "2026-11-03",
     title: "Made the results easier to read",
     why: "A review pointed out that MAE figures for different player sets looked contradictory, and that the ranking metric was never named.",
     result:
