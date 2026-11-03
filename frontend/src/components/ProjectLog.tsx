@@ -15,7 +15,7 @@ export function ProjectLog() {
   return (
     <section className="space-y-4">
       <div className="space-y-1">
-        <h2 className="text-sm font-medium">Project log</h2>
+        <h2 className="text-lg font-semibold">Project log</h2>
         <p className="text-muted-foreground text-sm">
           How the model is being adjusted and re-evaluated, including what didn&apos;t work. The
           code and prediction history are{" "}

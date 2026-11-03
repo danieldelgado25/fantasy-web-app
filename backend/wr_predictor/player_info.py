@@ -1,0 +1,55 @@
+from __future__ import annotations
+
+import polars as pl
+
+"""
+Display-only player details for the website: bio, headshot, team logo and
+season-to-date stats. Nothing here feeds the model or the prediction log.
+"""
+
+# nflreadpy player columns shown on the site, renamed to the names the site uses.
+PROFILE_COLUMNS = {
+    "gsis_id": "player_id",
+    "headshot": "headshot_url",
+    "jersey_number": "jersey_number",
+    "birth_date": "birth_date",
+    "height": "height_inches",
+    "weight": "weight_lbs",
+    "college_name": "college",
+    "years_of_experience": "years_exp",
+}
+
+# Season-to-date totals shown on the site, keyed by weekly stats column.
+SEASON_STAT_COLUMNS = {
+    "targets": "season_targets",
+    "receptions": "season_rec",
+    "receiving_yards": "season_rec_yds",
+    "receiving_tds": "season_rec_td",
+}
+
+
+def player_profiles(players: pl.DataFrame) -> pl.DataFrame:
+    """One row of bio details per player, from nflreadpy's player table."""
+    return players.select([pl.col(src).alias(dst) for src, dst in PROFILE_COLUMNS.items()]).unique("player_id")
+
+
+def season_totals(stats: pl.DataFrame, season: int) -> pl.DataFrame:
+    """Regular-season games played and receiving totals per player for `season` so far."""
+    played = stats.filter((pl.col("season") == season) & (pl.col("season_type") == "REG"))
+    return played.group_by("player_id").agg(
+        pl.len().cast(pl.Int32).alias("season_games"),
+        *[pl.col(src).sum().alias(dst) for src, dst in SEASON_STAT_COLUMNS.items()],
+    )
+
+
+def add_player_info(rows: pl.DataFrame, players: pl.DataFrame, teams: pl.DataFrame, stats: pl.DataFrame, season: int) -> pl.DataFrame:
+    """
+    Attach profiles, season totals and team logo to projection rows. Left joins, so a
+    player missing from any source keeps their projection with empty details.
+    """
+    logos = teams.select(pl.col("team_abbr").alias("team"), pl.col("team_logo_espn").alias("team_logo_url"))
+    return (
+        rows.join(player_profiles(players), on="player_id", how="left")
+        .join(season_totals(stats, season), on="player_id", how="left")
+        .join(logos, on="team", how="left")
+    )

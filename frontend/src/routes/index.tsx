@@ -1,12 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { AccuracyPanel } from "@/components/AccuracyPanel";
+import { Intro } from "@/components/Intro";
 import { PlayerSearch } from "@/components/PlayerSearch";
 import { ProjectionPanel } from "@/components/ProjectionPanel";
-import { ProjectLog } from "@/components/ProjectLog";
+import { StadiumHeader } from "@/components/StadiumHeader";
 import { TopPlayersTable } from "@/components/TopPlayersTable";
+import { Button } from "@/components/ui/button";
 import { fetchAccuracy, fetchProjections, type Player } from "@/lib/api";
 
 /** How many top-ranked players the table lists. Search reaches everyone else. */
@@ -52,9 +54,9 @@ function Index() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="border-b bg-card px-4 py-4">
+      <StadiumHeader>
         <div className="mx-auto max-w-2xl">
-          <h1 className="text-xl font-semibold tracking-tight">WR Projection Tool</h1>
+          <h1 className="text-3xl font-bold">WR Projection Tool</h1>
           <p className="text-muted-foreground text-sm">
             Fantasy football projections for NFL wide receivers
           </p>
@@ -64,10 +66,12 @@ function Index() {
             {generatedAt && ` Updated ${new Date(generatedAt).toLocaleString()}.`}
           </p>
         </div>
-      </header>
+      </StadiumHeader>
 
       <main className="flex-1 px-4 py-8">
         <div className="mx-auto max-w-2xl space-y-6">
+          <Intro accuracy={accuracyQuery.data} />
+
           <div className="space-y-2">
             <label htmlFor="player-search" className="text-sm font-medium leading-none">
               Select a player
@@ -88,7 +92,7 @@ function Index() {
 
           {topPlayers.length > 0 && (
             <section className="space-y-2">
-              <h2 className="text-sm font-medium">
+              <h2 className="text-lg font-semibold">
                 Top {TOP_PLAYERS_SHOWN} receivers by season PPR points
               </h2>
               <TopPlayersTable
@@ -102,7 +106,10 @@ function Index() {
           {/* Accuracy is secondary, so if it fails to load the projections still show. */}
           {accuracyQuery.data && <AccuracyPanel accuracy={accuracyQuery.data} />}
 
-          <ProjectLog />
+          {/* The log lives on its own page; this small link keeps it one click away. */}
+          <Button asChild variant="outline" size="sm">
+            <Link to="/log">View the project log</Link>
+          </Button>
         </div>
       </main>
     </div>

@@ -15,6 +15,22 @@ export interface PlayerProjection {
   pred_carries: number;
   pred_rushing_yards: number;
   pred_ppr_points: number;
+  // Display-only details from nflreadpy. Optional: older files lack them, and any can be null.
+  headshot_url?: string | null;
+  team_logo_url?: string | null;
+  jersey_number?: string | null;
+  /** YYYY-MM-DD. */
+  birth_date?: string | null;
+  height_inches?: number | null;
+  weight_lbs?: number | null;
+  college?: string | null;
+  years_exp?: number | null;
+  /** Regular-season games and receiving totals for `season` so far. */
+  season_games?: number | null;
+  season_targets?: number | null;
+  season_rec?: number | null;
+  season_rec_yds?: number | null;
+  season_rec_td?: number | null;
 }
 
 /** The static file the daily job publishes. */

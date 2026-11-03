@@ -25,6 +25,7 @@ from wr_predictor.model import (
     save_model,
     train_stat_models,
 )
+from wr_predictor.player_info import add_player_info
 from wr_predictor.predictions import add_rank, build_log_rows, not_yet_kicked_off, season_points, upsert_log
 from wr_predictor.stats import POINTS_STAT
 
@@ -105,7 +106,11 @@ def main() -> None:
 
     stats = data_loader.load_player_weekly_stats(train_seasons).filter(pl.col("position") == "WR")
     ranked = add_rank(predict_stats(models, snapshot), season_points(stats, current_season))
-    write_projections_file(build_log_rows(ranked), PROJECTIONS_PATH)
+    # Display details go only to the website file; the prediction log keeps its columns.
+    site_rows = add_player_info(
+        build_log_rows(ranked), data_loader.load_players(), data_loader.load_teams(), stats, current_season
+    )
+    write_projections_file(site_rows, PROJECTIONS_PATH)
     print(f"Wrote {ranked.height} player projections to {PROJECTIONS_PATH}")
 
     # Games that have started are left out, so their logged predictions stay frozen.

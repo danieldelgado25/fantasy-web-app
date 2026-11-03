@@ -24,6 +24,13 @@ def load_players(raw_data_dir: str = RAW_DATA_DIR) -> pl.DataFrame:
     return _load_cached("players", nfl.load_players, raw_data_dir)
 
 
+def load_teams(raw_data_dir: str = RAW_DATA_DIR) -> pl.DataFrame:
+    """
+    Load team metadata (names, colors, logo links), snapshotting to raw_data_dir.
+    """
+    return _load_cached("teams", nfl.load_teams, raw_data_dir)
+
+
 def load_schedules(seasons: list[int], raw_data_dir: str = RAW_DATA_DIR) -> pl.DataFrame:
     """
     Load NFL schedules/results, snapshotting to raw_data_dir.
