@@ -18,14 +18,12 @@ export const Route = createFileRoute("/")({
       { title: "WR Projection Tool" },
       {
         name: "description",
-        content:
-          "Single-page fantasy football projection tool for NFL wide receivers.",
+        content: "Single-page fantasy football projection tool for NFL wide receivers.",
       },
       { property: "og:title", content: "WR Projection Tool" },
       {
         property: "og:description",
-        content:
-          "Single-page fantasy football projection tool for NFL wide receivers.",
+        content: "Single-page fantasy football projection tool for NFL wide receivers.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -50,16 +48,13 @@ function Index() {
   const generatedAt = projectionsQuery.data?.generated_at;
   const players = projectionsQuery.data?.players ?? [];
   const topPlayers = players.filter((p) => p.rank <= TOP_PLAYERS_SHOWN);
-  const selectedProjection =
-    players.find((p) => p.player_id === selectedPlayer?.player_id) ?? null;
+  const selectedProjection = players.find((p) => p.player_id === selectedPlayer?.player_id) ?? null;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="border-b bg-card px-4 py-4">
         <div className="mx-auto max-w-2xl">
-          <h1 className="text-xl font-semibold tracking-tight">
-            WR Projection Tool
-          </h1>
+          <h1 className="text-xl font-semibold tracking-tight">WR Projection Tool</h1>
           <p className="text-muted-foreground text-sm">
             Fantasy football projections for NFL wide receivers
           </p>
@@ -74,10 +69,7 @@ function Index() {
       <main className="flex-1 px-4 py-8">
         <div className="mx-auto max-w-2xl space-y-6">
           <div className="space-y-2">
-            <label
-              htmlFor="player-search"
-              className="text-sm font-medium leading-none"
-            >
+            <label htmlFor="player-search" className="text-sm font-medium leading-none">
               Select a player
             </label>
             <PlayerSearch
@@ -111,7 +103,6 @@ function Index() {
           {accuracyQuery.data && <AccuracyPanel accuracy={accuracyQuery.data} />}
 
           <ProjectLog />
-
         </div>
       </main>
     </div>

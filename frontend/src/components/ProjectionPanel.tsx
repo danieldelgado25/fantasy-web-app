@@ -12,11 +12,7 @@ interface ProjectionPanelProps {
   error: Error | null;
 }
 
-export function ProjectionPanel({
-  projection,
-  isLoading,
-  error,
-}: ProjectionPanelProps) {
+export function ProjectionPanel({ projection, isLoading, error }: ProjectionPanelProps) {
   if (isLoading) {
     return (
       <Card>

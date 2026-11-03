@@ -10,11 +10,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { Player } from "@/lib/api";
 
 interface PlayerSearchProps {
@@ -24,12 +20,7 @@ interface PlayerSearchProps {
   disabled?: boolean;
 }
 
-export function PlayerSearch({
-  players,
-  selectedPlayer,
-  onSelect,
-  disabled,
-}: PlayerSearchProps) {
+export function PlayerSearch({ players, selectedPlayer, onSelect, disabled }: PlayerSearchProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -37,9 +28,7 @@ export function PlayerSearch({
     const query = search.trim().toLowerCase();
     if (!query) return players;
     return players.filter(
-      (p) =>
-        p.player_name.toLowerCase().includes(query) ||
-        p.team.toLowerCase().includes(query)
+      (p) => p.player_name.toLowerCase().includes(query) || p.team.toLowerCase().includes(query),
     );
   }, [players, search]);
 
@@ -81,15 +70,11 @@ export function PlayerSearch({
                 >
                   <Check
                     className={`mr-2 h-4 w-4 ${
-                      selectedPlayer?.player_id === player.player_id
-                        ? "opacity-100"
-                        : "opacity-0"
+                      selectedPlayer?.player_id === player.player_id ? "opacity-100" : "opacity-0"
                     }`}
                   />
                   <span className="flex-1">{player.player_name}</span>
-                  <span className="text-muted-foreground text-sm">
-                    {player.team}
-                  </span>
+                  <span className="text-muted-foreground text-sm">{player.team}</span>
                 </CommandItem>
               ))}
             </CommandGroup>
