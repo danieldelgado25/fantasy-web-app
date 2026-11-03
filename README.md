@@ -72,7 +72,6 @@ backend/
   evaluate.py     scores predictions and writes accuracy results
   predictions/    prediction logs, review tables and reports
   tests/          unit tests
-  api/            deprecated Flask API, replaced by the static projections file
 frontend/         React site, reading its data from public/data/
 notebooks/        data exploration
 ```

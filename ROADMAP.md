@@ -76,7 +76,7 @@ Findings so far, walking forward through 2023-2025 (54 weeks) for each week's to
 - [ ] Test the preview on desktop and phone
 - [x] Add a short note to the site saying what the numbers are and when they were updated
 - [x] Show accuracy on the site, with live results and replays kept separate
-- [ ] Remove the deprecated files flagged for manual removal
+- [x] Remove the deprecated files flagged for manual removal
 
 Done when: a preview URL shows current data without any manual steps.
 
@@ -103,7 +103,7 @@ Roster-based pivots, more positions and the player news monitor, all described b
 ## Deployment architecture
 
 - **Frontend (React):** deploy to Vercel. Zero-config GitHub deploys, preview URLs per PR — a strong fit for a static/SSR React app.
-- **No always-on backend:** a scheduled GitHub Action runs `train.py` and `evaluate.py`, then commits `frontend/public/data/projections.json` and the prediction log. That push rebuilds the site. It's free on a public repo, nothing sleeps, and git history proves when each prediction was made. Reasoning over a hosted API: projections are precomputed anyway, so a server would only add cold starts and another host to maintain. If a feature ever needs per-request logic, the deprecated Flask API in `backend/api/` is the starting point.
+- **No always-on backend:** a scheduled GitHub Action runs `train.py` and `evaluate.py`, then commits `frontend/public/data/projections.json` and the prediction log. That push rebuilds the site. It's free on a public repo, nothing sleeps, and git history proves when each prediction was made. Reasoning over a hosted API: projections are precomputed anyway, so a server would only add cold starts and another host to maintain. The old Flask API was removed on 2026-11-03; if a feature ever needs per-request logic, it's in the git history before that date.
 
 ## Passing bar for the model
 

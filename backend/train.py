@@ -22,27 +22,21 @@ from wr_predictor.model import (
     predict_stats,
     prepare_inference_frame,
     prepare_model_frame,
-    save_model,
     train_stat_models,
 )
 from wr_predictor.player_info import add_player_info
 from wr_predictor.predictions import add_rank, build_log_rows, not_yet_kicked_off, season_points, upsert_log
-from wr_predictor.stats import POINTS_STAT
 
 """
 Trains one model per projected stat on all available regular-season data, then
 writes this week's projections two ways: a JSON file the website reads, and a
 season log used later to score predictions against actual results.
-Also writes the model and snapshot the deprecated local Flask API reads.
 Run from backend/: python train.py
 """
 
 # Earliest season with usable stats. The latest is always the current season,
 # so projections and training data roll forward without a yearly code change.
 FIRST_TRAIN_SEASON = 2021
-
-MODEL_PATH = "models/wr_ridge.joblib"
-SNAPSHOT_PATH = "data/processed/wr_latest_snapshot.parquet"
 
 # Served as a static file by the frontend.
 PROJECTIONS_PATH = "../frontend/public/data/projections.json"
@@ -92,17 +86,11 @@ def main() -> None:
     snapshot = attach_next_game_context(snapshot, seasons=schedule_lookup_seasons)
     snapshot = prepare_inference_frame(snapshot, feature_columns + rushing_columns)
 
-    # Fail the build rather than publish nothing: on a failed build Render keeps
-    # serving the last good deploy. Expected in the offseason, with no games ahead.
+    # Fail the job rather than publish nothing: a failed job commits nothing, so the
+    # site keeps its last good data. Expected in the offseason, with no games ahead.
     if snapshot.is_empty():
-        raise SystemExit("No projectable players (no upcoming games or roster data). Artifacts not written.")
-
-    points_model, points_columns = models[POINTS_STAT]
-    save_model(points_model, points_columns, MODEL_PATH)
-    print(f"Trained {len(models)} models on {frame.height} rows. Saved the points model to {MODEL_PATH}")
-
-    os.makedirs(os.path.dirname(SNAPSHOT_PATH) or ".", exist_ok=True)
-    snapshot.write_parquet(SNAPSHOT_PATH)
+        raise SystemExit("No projectable players (no upcoming games or roster data). Nothing written.")
+    print(f"Trained {len(models)} models on {frame.height} rows.")
 
     stats = data_loader.load_player_weekly_stats(train_seasons).filter(pl.col("position") == "WR")
     ranked = add_rank(predict_stats(models, snapshot), season_points(stats, current_season))
