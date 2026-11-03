@@ -45,6 +45,14 @@ def test_add_rank_orders_best_first_and_puts_players_without_points_last() -> No
     assert result["rank"].to_list() == [2, 1, 3]
 
 
+def test_live_weeks_only_skips_the_partly_logged_first_week() -> None:
+    log = pl.DataFrame({"week": [8, 9, 10]})
+
+    # 2026 logging began partway through week 8; other seasons count from week 1.
+    assert predictions.live_weeks_only(log, 2026)["week"].to_list() == [9, 10]
+    assert predictions.live_weeks_only(log, 2027)["week"].to_list() == [8, 9, 10]
+
+
 def test_not_yet_kicked_off_uses_time_and_keeps_unknown_times() -> None:
     frame = pl.DataFrame(
         {

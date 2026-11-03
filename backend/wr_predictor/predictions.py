@@ -29,6 +29,17 @@ REVIEW_STATS = ["targets", "rec", POINTS_STAT]
 # Columns that identify a logged prediction.
 LOG_KEY = ["season", "week", "player_id"]
 
+# First week of each season whose every game was logged before kickoff. 2026 logging
+# began on Nov 2, after most of week 8 had started, so week 8 has 11 predictions from
+# one game. Those stay in the log, frozen, but aren't scored as a live week.
+# Seasons not listed start at week 1.
+FIRST_LIVE_WEEK = {2026: 9}
+
+
+def live_weeks_only(log: pl.DataFrame, season: int) -> pl.DataFrame:
+    """Drop logged weeks before live tracking fully began, so they're never scored or shown."""
+    return log.filter(pl.col("week") >= FIRST_LIVE_WEEK.get(season, 1))
+
 
 def season_points(stats: pl.DataFrame, season: int) -> pl.DataFrame:
     """
