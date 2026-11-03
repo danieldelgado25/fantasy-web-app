@@ -1,6 +1,6 @@
 # NFL Wide Receiver Fantasy Projections
 
-**Live site: https://frontend-ten-ashy-53.vercel.app**
+**Live site: https://wr-projections.vercel.app**
 
 A machine learning pipeline and website that project each NFL wide receiver's fantasy production for their next game, using only information available before kickoff. Predictions are saved publicly before each game and scored against what actually happened.
 

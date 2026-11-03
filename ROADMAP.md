@@ -82,7 +82,7 @@ Done when: a preview URL shows current data without any manual steps.
 ### Phase 7: Public launch
 - [x] Make a first production deployment, by updating the `production` branch to `main`
 - [ ] Point Vercel's production branch back to `main`, so each daily job commit publishes fresh data automatically, then flag the `production` branch for removal
-- [x] Confirm the production URL opens without a login: https://frontend-ten-ashy-53.vercel.app
+- [x] Confirm the production URL opens without a login: https://wr-projections.vercel.app
 - [ ] Share the link and confirm it works without cloning anything
 - [ ] Watch the first week of unattended refreshes
 
