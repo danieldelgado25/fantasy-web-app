@@ -15,7 +15,7 @@ Replay of 2026 weeks 4-7, where each week's top 20 receivers were predicted usin
 | Average points miss (MAE, lower is better) | 6.92 | 8.43 |
 | Ranking of players (rank correlation, higher is better) | 0.24 | 0.15 |
 
-These numbers are a test of the method, not proof. The real test is predictions saved before kickoff, starting with week 9 of 2026, in [`backend/predictions/`](backend/predictions/). A week's predictions freeze at kickoff, and the git history shows when each was made.
+These numbers are a test of the method, not proof. The real test is predictions saved before kickoff, starting with week 9 of 2026, in [`backend/predictions/`](backend/predictions/). A week's predictions freeze at kickoff, and the git history shows when each was made. [`check_freeze.py`](backend/check_freeze.py) enforces this: CI and the daily job fail if any commit added, edited or removed a prediction for a game that had already started.
 
 ## How it works
 

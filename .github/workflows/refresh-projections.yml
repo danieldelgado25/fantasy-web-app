@@ -1,7 +1,7 @@
 # Daily during the NFL season: retrains on fresh data, then commits the projections
 # and prediction log. The commit is what publishes them, because the website is
-# rebuilt on each push. If training fails, nothing is committed and the site keeps
-# its last good data.
+# rebuilt on each push. If training fails, nothing is committed, and if a prediction
+# changed after kickoff, nothing is pushed. Either way the site keeps its last good data.
 name: Refresh projections
 
 on:
@@ -22,6 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history, so the freeze check can see every commit to the prediction logs.
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -39,4 +42,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add backend/predictions frontend/public/data
           git diff --cached --quiet || git commit -m "Refresh projections and prediction log"
-          git push
+      # CI doesn't run on this job's pushes, so the freeze is checked here, before pushing.
+      - name: Check no prediction changed after kickoff
+        working-directory: backend
+        run: python check_freeze.py
+      - name: Push
+        run: git push

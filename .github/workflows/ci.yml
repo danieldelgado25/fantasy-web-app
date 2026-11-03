@@ -16,6 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history, so the freeze check can see every commit to the prediction logs.
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -27,6 +30,9 @@ jobs:
       - name: Run tests
         working-directory: backend
         run: python -m pytest -q
+      - name: Check no prediction changed after kickoff
+        working-directory: backend
+        run: python check_freeze.py
 
   frontend:
     runs-on: ubuntu-latest
