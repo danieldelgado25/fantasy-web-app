@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { AccuracyPanel } from "@/components/AccuracyPanel";
+import { HowItWorks } from "@/components/HowItWorks";
 import { Intro } from "@/components/Intro";
 import { PlayerSearch } from "@/components/PlayerSearch";
 import { ProjectionPanel } from "@/components/ProjectionPanel";
@@ -106,6 +107,8 @@ function Index() {
 
           {/* Accuracy is secondary, so if it fails to load the projections still show. */}
           {accuracyQuery.data && <AccuracyPanel accuracy={accuracyQuery.data} />}
+
+          <HowItWorks />
 
           {/* The log lives on its own page; these small links keep it and the code one click away. */}
           <div className="flex flex-wrap gap-2">
