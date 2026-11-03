@@ -13,27 +13,6 @@
   "live": {
     "scores": [
       {
-        "week": 8,
-        "predicted": 11,
-        "played": 9,
-        "targets_mae": 1.1055555555555554,
-        "targets_baseline_mae": 1.2955555555555556,
-        "rec_mae": 1.0022222222222223,
-        "rec_baseline_mae": 1.1488888888888888,
-        "rec_yds_mae": 13.958888888888888,
-        "rec_yds_baseline_mae": 15.371111111111112,
-        "rec_td_mae": 0.2822222222222222,
-        "rec_td_baseline_mae": 0.2588888888888889,
-        "carries_mae": 0.31555555555555553,
-        "carries_baseline_mae": 0.4077777777777778,
-        "rushing_yards_mae": 5.536666666666667,
-        "rushing_yards_baseline_mae": 6.223333333333334,
-        "ppr_points_mae": 2.444444444444445,
-        "ppr_points_baseline_mae": 2.515555555555556,
-        "rank_correlation": 0.9958246164193104,
-        "baseline_rank_correlation": 0.9831932773109243
-      },
-      {
         "week": 9,
         "predicted": 20,
         "played": 0
@@ -46,7 +25,7 @@
     ],
     "gate": {
       "passed": false,
-      "reason": "needs 4 finished weeks, has 1"
+      "reason": "needs 4 finished weeks, has 0"
     }
   },
   "replay": {
