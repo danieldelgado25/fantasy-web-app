@@ -20,14 +20,14 @@ Check items off as they land. The site is mainly for recruiters and interviewers
 ### Phase 3: Start live logging (deadline: before the Nov 5 kickoff)
 - [x] Push `deploy-readiness`
 - [x] Merge it to `main`
-- [ ] Run the refresh workflow by hand from the GitHub Actions tab, or wait for the 10:00 UTC run
+- [ ] Wait for the first scheduled run at 10:00 UTC on Nov 3, or start it from the GitHub Actions tab
 - [ ] Confirm its commit updated `backend/predictions/2026.csv` and `projections.json`
 - [ ] Confirm the next scheduled daily run works
 
 Done when: week 9 predictions are on GitHub before kickoff and the daily job runs unattended.
 
 ### Phase 4: CI
-- [x] Run backend tests, the frontend type check and the build on every push
+- [x] Run backend tests, lint, the frontend type check and the build on every push
 - [x] Push a deliberately failing branch to prove CI catches it
 - [x] Decide how to enforce CI: not yet, revisited in Phase 6
 - [x] Write down what to do when CI or the daily job fails (see "When something fails")
@@ -63,14 +63,7 @@ Findings so far, walking forward through 2023-2025 (54 weeks) for each week's to
 - Touchdowns drive the biggest misses. In that replay, a player's points miss averaged -3.1 with no touchdown, +6.9 with one and +15.7 with two, while weekly target and catch totals stayed close to actual.
 - Opportunity data from nflverse didn't clear the noise. On identical rows (2023-2025 ranking change, then 2026): expected production +0.010 and +0.014; teammates ruled out +0.010 and +0.001; red-zone, end-zone and deep targets +0.008 and +0.004; snap share +0.006 and -0.034. Ball quality, separation, drops and broken tackles, unused box-score columns, team pass volume and own injury status showed nothing reliable either. Using every group together made 2026 points error worse.
 - Keep under consideration: expected production (`load_ff_opportunity`), the only group ahead on ranking in all four seasons, and teammates ruled out (`load_injuries`), the strongest 2023-2025 result. Tested together, they stayed within noise: ranking +0.012 over 2023-2025 and +0.009 in 2026, with points MAE 0.011 better and then 0.024 worse. Revisit if the live verdict fails. Scripts are on the `model-experiments` branch. Route participation can't be used because `load_participation` stops at 2025.
-
-## When something fails
-
-- **CI fails:** open the run from the commit's red X. For the backend, run `python -m pytest` from `backend/`. For the frontend, run `bunx tsc --noEmit` and `bun run build` from `frontend/`. Fix it on the branch and don't merge until it's green.
-- **The daily job fails:** the site keeps its last good data, so nothing is urgent. Read the failed step in the Actions tab. Late or unavailable nflverse data usually clears by itself, so rerun it by hand or wait for the next day's run.
-- **"No projectable players":** expected between seasons, when there are no upcoming games. Otherwise, check whether roster or schedule data changed.
-- **The daily job stops running:** GitHub can pause scheduled workflows after 60 days without repo activity. Re-enable it from the Actions tab each September.
-- **Bad data got published:** revert the job's commit. Don't edit the log by hand, because its git history is what proves predictions came before kickoff.
+- Touchdown-specific models didn't hold up. Poisson regression, 16-game history, expected touchdowns and red-zone targets raised touchdown ranking by up to +0.035 over 2023-2025, but the best combinations did worse on 2026 (-0.027 to -0.076). Points ranking moved at most +0.009 and then -0.008, so none were added. Scripts are on the `model-experiments` branch.
 
 ### Phase 6: Deployment preparation
 - [ ] Decide whether to enforce CI. GitHub's required checks would also reject the daily job's direct commits to `main`, so it would need a bypass or a separate data branch
@@ -87,6 +80,7 @@ Findings so far, walking forward through 2023-2025 (54 weeks) for each week's to
 Done when: a preview URL shows current data without any manual steps.
 
 ### Phase 7: Public launch
+- [x] Make a first production deployment, by updating the `production` branch to `main`
 - [ ] Point Vercel's production branch back to `main`, so each daily job commit publishes fresh data automatically, then flag the `production` branch for removal
 - [ ] Turn off Vercel's login requirement for the production URL if it applies
 - [ ] Share the link and confirm it works without cloning anything
@@ -96,6 +90,14 @@ Done when: anyone can open the link and see this week's projections.
 
 ### After launch
 Roster-based pivots, more positions and the player news monitor, all described below.
+
+## When something fails
+
+- **CI fails:** open the run from the commit's red X. For the backend, run `python -m pytest` from `backend/`. For the frontend, run `bun run lint`, `bunx tsc --noEmit` and `bun run build` from `frontend/`. Fix it on the branch and don't merge until it's green.
+- **The daily job fails:** the site keeps its last good data, so nothing is urgent. Read the failed step in the Actions tab. Late or unavailable nflverse data usually clears by itself, so rerun it by hand or wait for the next day's run.
+- **"No projectable players":** expected between seasons, when there are no upcoming games. Otherwise, check whether roster or schedule data changed.
+- **The daily job stops running:** GitHub can pause scheduled workflows after 60 days without repo activity. Re-enable it from the Actions tab each September.
+- **Bad data got published:** revert the job's commit. Don't edit the log by hand, because its git history is what proves predictions came before kickoff.
 
 ## Deployment architecture
 
