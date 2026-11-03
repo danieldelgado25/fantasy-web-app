@@ -21,6 +21,20 @@ export const REPOSITORY_URL = "https://github.com/danieldelgado25/fantasy-web-ap
 export const PROJECT_LOG: ProjectLogEntry[] = [
   {
     date: "2026-11-02",
+    title: "First production deployment",
+    why: "The site is meant to show how the model is built and re-evaluated, so publishing it doesn't need to wait for a perfect model.",
+    result:
+      "The site is deployed on Vercel, and live prediction tracking keeps running in public. Scoring against the passing bar continues as weeks finish.",
+  },
+  {
+    date: "2026-11-02",
+    title: "Tested better ways to project touchdowns",
+    why: "Touchdowns cause many of the biggest points misses, so I tried count models, longer player history, expected touchdowns and red-zone targets.",
+    result:
+      "The best combination looked better on 2023-2025 but worse on 2026, so none were added. With so few touchdowns per game, they remain hard to predict.",
+  },
+  {
+    date: "2026-11-02",
     title: "Security review before going public",
     why: "The deployment platform blocked the build over a critical cross-site scripting flaw in the web framework.",
     result:
