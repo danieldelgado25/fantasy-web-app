@@ -6,9 +6,10 @@ name: Refresh projections
 
 on:
   schedule:
-    # 10:00 UTC is before every kickoff that day, and gives stats from the previous
+    # 10:17 UTC is before every kickoff that day, and gives stats from the previous
     # day's games time to land. September through February only: no games otherwise.
-    - cron: "0 10 * 1,2,9-12 *"
+    # Off the hour on purpose: GitHub can drop scheduled runs set for :00 when busy.
+    - cron: "17 10 * 1,2,9-12 *"
   # Allows a manual refresh from the GitHub Actions tab.
   workflow_dispatch:
 
