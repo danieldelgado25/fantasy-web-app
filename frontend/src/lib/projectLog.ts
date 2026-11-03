@@ -20,6 +20,13 @@ export const REPOSITORY_URL = "https://github.com/danieldelgado25/fantasy-web-ap
  */
 export const PROJECT_LOG: ProjectLogEntry[] = [
   {
+    date: "2026-11-03",
+    title: "Made the results easier to read",
+    why: "A review pointed out that MAE figures for different player sets looked contradictory, and that the ranking metric was never named.",
+    result:
+      "Each MAE now says which players and seasons it covers, ranking is named as Spearman rank correlation, and a How it works section lists the seven models. The test run leads the page until four live weeks are scored.",
+  },
+  {
     date: "2026-11-02",
     title: "First production deployment",
     why: "The site is meant to show how the model is built and re-evaluated, so publishing it doesn't need to wait for a perfect model.",
