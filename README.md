@@ -1,72 +1,96 @@
-# fantasy-web-app
+# NFL Wide Receiver Fantasy Projections
 
-A fantasy sports projection platform, built around statistics, probability, and machine learning rather than qualitative "expert rankings." The long-term goal is a web application that serves reproducible, pre-game fantasy projections across multiple sports.
+A machine learning pipeline and website that project each NFL wide receiver's fantasy production for their next game, using only information available before kickoff. Predictions are saved publicly before each game and scored against what actually happened.
 
-This repository is the successor to [`wide-receiver-predictor`](https://github.com/danieldelgado25/wide-receiver-predictor), whose data pipeline and modeling code now live here as the project's foundation (`backend/wr_predictor/`). The repo is split into a `backend/` (pipeline + API) and a planned `frontend/` (React).
+Fantasy football is noisy, so the goal isn't a perfect forecast. It's a reproducible model with an honest answer to one question: does it beat a simple alternative?
 
-## Project Goal
+## Results so far
 
-Predict a wide receiver's fantasy football production (PPR points) for their next game, using only information that would have been available before that game was played — then, over time, expand the same discipline to more positions and more sports, and expose the results through a public web app.
+Replay of 2026 weeks 4-7, where each week's top 20 receivers were predicted using only earlier games:
 
-Core commitments carried over from the original project:
-- no data leakage — every feature must be knowable pre-game
-- reproducible, code-based projections instead of qualitative rankings
-- honesty about the limits of predicting a noisy, variance-driven sport
+| Measure | Model | Last-3-games average |
+|---|---|---|
+| Average points miss (MAE, lower is better) | 6.92 | 8.43 |
+| Ranking of players (rank correlation, higher is better) | 0.24 | 0.15 |
 
-## Current Status
+These numbers are a test of the method, not proof. The real test is predictions saved before kickoff, starting with week 9 of 2026, in [`backend/predictions/`](backend/predictions/). A week's predictions freeze at kickoff, and the git history shows when each was made.
 
-- **Data pipeline & model (NFL, WR):** functional. Pulls data via `nflreadpy`, filters to wide receivers, engineers pre-game features, builds a `next_week_ppr_points` target, and trains/evaluates models (baseline rolling average vs. Ridge regression).
-- **Backend API:** skeleton only. A Flask app (`backend/api/`) exists with a health check route; the projections route is a stub — it isn't wired to the pipeline yet because there's no saved model artifact or single-row inference function to call.
-- **Frontend:** not started. React was chosen as the framework; no code yet, and no npm packages have been installed.
-- **Rest-of-season rankings, player news monitor:** deferred — see [ROADMAP.md](ROADMAP.md).
-- **Other sports/positions:** not started. NFL WR remains the sole focus until the pipeline and app are proven out here.
+## How it works
 
-## Data Pipeline
+```
+nflverse data ──> features ──> one Ridge model per stat ──> projections.json ──> website
+                                        │
+                                        └──> prediction log ──> scored against actual results
+```
 
-Main data source is `nflreadpy`. Fantasy-specific enrichment libraries from the ffverse ecosystem (`ffverse`, `ffopportunity`) may be incorporated later for opportunity-based metrics, but `nflreadpy` remains the primary workflow.
+A scheduled GitHub Action runs this daily during the season: it pulls fresh data, retrains, updates the projections and scores, and commits the results. That commit is what publishes new numbers to the site, so there's no backend server to host or keep awake.
 
-Dataset structure:
-- one row per wide receiver per week
-- only pre-game features
-- target: next-week fantasy points
+- **Supervised learning:** Ridge regression, trained on past player-games labeled with what happened in the player's next game.
+- **Projected stats:** targets, catches, receiving yards, receiving touchdowns, carries, rushing yards and official PPR points.
+- **Inputs:** recent production and usage, target share, air yards, plus the next game's home or away status, dome, game total and implied team total.
+- **Players:** the model trains on all receivers. The site highlights the top 20 by points so far, and search reaches the other active receivers.
 
-Feature categories in use or planned:
-- previous week fantasy points
-- rolling averages over recent games
-- targets, receptions, air yards, and touchdowns
-- target share and usage trends
-- team offensive environment
-- opponent defensive context
-- game location and other situational factors
+## How it's evaluated
 
-## Repository Structure
+- **No future information:** every input must be known before kickoff. Past weeks are replayed by removing later games before any features are built, so a replay can't see the games it's predicting.
+- **A simple baseline to beat:** each player's average over their last 3 games.
+- **A passing bar:** over the latest 4 finished live weeks, all 20 predictions made, and better than the baseline on both MAE and ranking.
+- **Weekly review:** predicted vs actual tables for targets, catches and points.
+
+## What testing changed
+
+Most ideas didn't survive testing, and the [project log on the site](frontend/src/lib/projectLog.ts) records them along with the ones that did. A few examples:
+
+- **Removed weather:** game-time weather isn't known before kickoff. Accuracy didn't change, and usable training rows rose from 6,117 to 10,640.
+- **Replaced my own target:** a fixed ranking score of 0.30 turned out to be largely luck over 4 weeks, because the score swung from 0.05 to 0.37. The bar now compares against the baseline.
+- **Kept the simple model:** boosted trees, random forest, past prediction errors, 10 groups of extra opportunity data and touchdown-specific models didn't reliably beat Ridge regression.
+- **Found the limit:** touchdowns drive the biggest misses and remain hard to predict, while target and catch totals stay close on average.
+
+Full findings are in [ROADMAP.md](ROADMAP.md).
+
+## Tech stack
+
+| Area | Tools |
+|---|---|
+| Data | Python, Polars, [nflreadpy](https://github.com/nflverse/nflreadpy) |
+| Modeling | scikit-learn |
+| Website | React, TypeScript, TanStack Start, Tailwind CSS |
+| Automation and hosting | GitHub Actions, Vercel |
+
+The frontend was scaffolded with Lovable, and the project was developed with help from Claude Code. Learning to work well with AI tools is one of the project's goals.
+
+## Repository layout
 
 ```
 backend/
-  wr_predictor/   # pipeline: data loading, filtering, features, targets, model training/eval
-  api/             # Flask app — thin HTTP layer, imports wr_predictor, no modeling logic
-  tests/           # unit tests for wr_predictor
-  main.py          # builds datasets, runs baseline-vs-Ridge comparison
-  requirements.txt
-frontend/          # React app (planned, not yet scaffolded)
-notebooks/          # experimentation only, not a home for reusable logic
+  wr_predictor/   pipeline: data loading, features, targets, models, prediction scoring
+  train.py        trains the models and writes projections and the prediction log
+  evaluate.py     scores predictions and writes accuracy results
+  predictions/    prediction logs, review tables and reports
+  tests/          unit tests
+  api/            deprecated Flask API, replaced by the static projections file
+frontend/         React site, reading its data from public/data/
+notebooks/        data exploration
 ```
 
-`wr_predictor` and `api` are kept as separate packages under `backend/` on purpose: the pipeline has no concept of HTTP, and the API is a thin, replaceable adapter over it.
+## Run it locally
 
-Run the pipeline/tests/API with `backend/` as the working directory (e.g. `cd backend && python main.py`, `cd backend && python -m pytest tests/`, `cd backend && python -m api.app`), after `pip install -r backend/requirements-dev.txt` (`requirements.txt` alone holds only what production needs). `python train.py` writes the projections and prediction log, and `python evaluate.py` scores them against actual results (add `--replay` to regenerate this season's past weeks).
+```bash
+# Backend, from backend/
+pip install -r requirements-dev.txt
+python -m pytest
+python train.py
+python evaluate.py          # add --replay to regenerate this season's past weeks
+
+# Frontend, from frontend/
+bun install
+bun run dev
+```
 
 ## Roadmap
 
-1. Continue maturing the NFL WR pipeline and model.
-2. Build the web app: React frontend (deployed to Vercel) + Flask backend/API (deployed separately — see [ROADMAP.md](ROADMAP.md) for why). Add model persistence and wire the `/api/projections` route to real inference.
-3. Weekly rankings (sort projections — no new model required).
-4. Extend modeling to additional NFL positions.
-5. Extend to additional sports.
-6. Open the app up for public use.
-
-Deferred, not yet scheduled: rest-of-season rankings and a player news monitor — see [ROADMAP.md](ROADMAP.md).
+The checklist and open decisions are in [ROADMAP.md](ROADMAP.md). Future ideas include roster-based pivots when a top player is hurt, rest-of-season rankings, a player news overlay and more positions.
 
 ## Disclaimer
 
-This project is an analytics and learning tool, not a promise of accurate fantasy outcomes.
+This is an analytics and learning project. Projections are estimates, not guarantees or betting advice.
