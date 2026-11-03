@@ -45,7 +45,10 @@ export function TopPlayersTable({ players, selectedPlayerId, onSelect }: TopPlay
               >
                 {player.player_name}
               </button>
-              <span className="text-muted-foreground ml-2 text-xs">{player.team}</span>
+              <span className="text-muted-foreground ml-2 inline-flex items-center gap-1 align-middle text-xs">
+                {player.team_logo_url && <img src={player.team_logo_url} alt="" className="h-4 w-4" />}
+                {player.team}
+              </span>
             </TableCell>
             <TableCell className="text-muted-foreground">
               Wk {player.week} vs {player.opponent_team}
