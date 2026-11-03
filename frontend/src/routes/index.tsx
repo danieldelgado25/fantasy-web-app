@@ -6,6 +6,7 @@ import { AccuracyPanel } from "@/components/AccuracyPanel";
 import { Intro } from "@/components/Intro";
 import { PlayerSearch } from "@/components/PlayerSearch";
 import { ProjectionPanel } from "@/components/ProjectionPanel";
+import { StadiumHeader } from "@/components/StadiumHeader";
 import { TopPlayersTable } from "@/components/TopPlayersTable";
 import { Button } from "@/components/ui/button";
 import { fetchAccuracy, fetchProjections, type Player } from "@/lib/api";
@@ -53,8 +54,7 @@ function Index() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* The thick green rule under the header is the theme's signature accent. */}
-      <header className="border-b-[3px] border-primary bg-card px-4 py-4">
+      <StadiumHeader>
         <div className="mx-auto max-w-2xl">
           <h1 className="text-3xl font-bold">WR Projection Tool</h1>
           <p className="text-muted-foreground text-sm">
@@ -66,7 +66,7 @@ function Index() {
             {generatedAt && ` Updated ${new Date(generatedAt).toLocaleString()}.`}
           </p>
         </div>
-      </header>
+      </StadiumHeader>
 
       <main className="flex-1 px-4 py-8">
         <div className="mx-auto max-w-2xl space-y-6">
