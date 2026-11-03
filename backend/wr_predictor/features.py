@@ -28,21 +28,30 @@ def add_basic_fantasy_points(data_frame: pl.DataFrame) -> pl.DataFrame:
     )
 
 
+# Each player's games in order. Lags, rolling averages and targets all follow it.
+GAME_ORDER = ["player_id", "season", "week"]
+
+
+def require_columns(data_frame: pl.DataFrame, columns: list[str], purpose: str) -> None:
+    """
+    Raise if any of `columns` is missing. Players are keyed by player_id only: falling
+    back to a name would merge two players who share one.
+    """
+    missing = [col for col in columns if col not in data_frame.columns]
+    if missing:
+        raise ValueError(f"Missing {missing}, needed for {purpose}.")
+
+
 def add_lag_features(data_frame: pl.DataFrame) -> pl.DataFrame:
     """
-    Add previous-week features per player.
-    Find columns that ID player, season, and week.
-    Sort by player/season/week, add "prev_week" versions of rec, rec_yds, and rec_td, etc.
+    Sort each player's games and add a "prev_week" version of every feature stat.
+    Lags, rolling averages and targets group by player only, not by season, on
+    purpose: a player's first game of a season uses their final games of the last
+    one, so week 1 still has inputs. Those inputs are weaker when a player's role
+    changed in the offseason, such as after a trade or a new coaching staff.
     """
-    player_col = _find_first_existing(data_frame.columns, ["player_id", "gsis_id", "player_name"])
-    season_col = _find_first_existing(data_frame.columns, ["season"])
-    week_col = _find_first_existing(data_frame.columns, ["week"])
-
-    if not all([player_col, season_col, week_col]):
-        raise ValueError("Missing player/season/week columns needed for lag features.")
-
-    sort_cols = [player_col, season_col, week_col]
-    data_frame = data_frame.sort(sort_cols)
+    require_columns(data_frame, GAME_ORDER, "lag features")
+    data_frame = data_frame.sort(GAME_ORDER)
 
     expressions = []
     for col in FEATURE_STATS:
@@ -51,7 +60,7 @@ def add_lag_features(data_frame: pl.DataFrame) -> pl.DataFrame:
             expressions.append(
                 pl.col(col)
                 .shift(1)
-                .over(player_col)
+                .over("player_id")
                 .alias(f"{safe}_prev_week")
             )
 
@@ -66,9 +75,7 @@ def add_rolling_features(data_frame: pl.DataFrame) -> pl.DataFrame:
     out would ignore the most recent evidence. Assumes rows are sorted, which
     add_lag_features guarantees.
     """
-    player_col = _find_first_existing(data_frame.columns, ["player_id", "gsis_id", "player_name"])
-    if player_col is None:
-        raise ValueError("Missing player identifier for rolling features.")
+    require_columns(data_frame, ["player_id"], "rolling features")
 
     expressions = []
     for col in FEATURE_STATS:
@@ -77,13 +84,13 @@ def add_rolling_features(data_frame: pl.DataFrame) -> pl.DataFrame:
             expressions.append(
                 pl.col(col)
                 .rolling_mean(window_size=3, min_samples=1)
-                .over(player_col)
+                .over("player_id")
                 .alias(f"{safe}_rolling_3")
             )
             expressions.append(
                 pl.col(col)
                 .rolling_mean(window_size=5, min_samples=1)
-                .over(player_col)
+                .over("player_id")
                 .alias(f"{safe}_rolling_5")
             )
 
@@ -168,13 +175,3 @@ def _add_trend_features(data_frame: pl.DataFrame) -> pl.DataFrame:
             (pl.col("ppr_points") - pl.col("ppr_points_rolling_3")).alias("ppr_points_minus_roll3")
         )
     return data_frame
-
-
-def _find_first_existing(columns: list[str], candidates: list[str]) -> str | None:
-    """
-    Utility to choose first available column name from set of candidates.
-    """
-    for col in candidates:
-        if col in columns:
-            return col
-    return None

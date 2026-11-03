@@ -1,8 +1,8 @@
 import polars as pl
+import pytest
 
 from wr_predictor import data_loader
 from wr_predictor.dataset_builder import (
-    _find_first_existing,
     _merge_ff_opportunity,
     _merge_schedule_context,
     _normalize_receiving_columns,
@@ -12,7 +12,7 @@ from wr_predictor.dataset_builder import (
     filter_to_active_roster,
     team_game_context,
 )
-from wr_predictor.features import add_next_game_context
+from wr_predictor.features import add_lag_features, add_next_game_context
 
 
 """
@@ -42,12 +42,12 @@ def test_normalize_receiving_columns_skips_when_already_present() -> None:
     assert set(result.columns) == {"receptions", "rec"}
 
 
-def test_find_first_existing_returns_first_match() -> None:
-    assert _find_first_existing(["gsis_id", "player_id"], ["player_id", "gsis_id"]) == "player_id"
+def test_lag_features_refuse_to_fall_back_to_player_name() -> None:
+    # Two players can share a name, so grouping by it would merge their games.
+    weekly = pl.DataFrame({"player_name": ["Mike Williams"], "season": [2024], "week": [1]})
 
-
-def test_find_first_existing_returns_none_when_no_match() -> None:
-    assert _find_first_existing(["foo"], ["player_id", "gsis_id"]) is None
+    with pytest.raises(ValueError, match="player_id"):
+        add_lag_features(weekly)
 
 
 def test_merge_schedule_context_adds_situational_columns(monkeypatch) -> None:

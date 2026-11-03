@@ -29,7 +29,6 @@ def build_training_dataset(
     """
     # Load weekly stats and player metadata
     weekly = _games_before(data_loader.load_player_weekly_stats(seasons), before)
-    players = data_loader.load_players()
 
     # Normalize column names from nflreadpy (receptions, receiving_yards, receiving_tds) to our names
     weekly = _normalize_receiving_columns(weekly)
@@ -37,26 +36,7 @@ def build_training_dataset(
     # Game context from schedules (spread, total, home flag) — all known before kickoff
     weekly = _merge_schedule_context(weekly, seasons)
 
-    # Filter to position (WR): join with players if position not in weekly
-    player_col = _find_first_existing(weekly.columns, ["player_id", "gsis_id"])
-    if player_col is None:
-        raise ValueError("Weekly stats must have player_id or gsis_id.")
-    if "position" not in weekly.columns and not players.is_empty():
-        pos_col = _find_first_existing(players.columns, ["position", "pos"])
-        id_in_players = _find_first_existing(players.columns, ["player_id", "gsis_id"])
-        if pos_col and id_in_players:
-            players = players.select([id_in_players, pos_col]).unique()
-            if pos_col != "position":
-                players = players.rename({pos_col: "position"})
-            weekly = weekly.join(
-                players,
-                left_on=player_col,
-                right_on=id_in_players,
-                how="inner",
-            )
-    if "position" in weekly.columns:
-        weekly = weekly.filter(pl.col("position") == position)
-
+    weekly = _filter_to_position(weekly, position)
     weekly = filters.drop_special_teams_only_rows(weekly)
 
     # PPR fantasy points, then target and drop rows without target
@@ -69,16 +49,15 @@ def build_training_dataset(
     # This can be used to restrict the training set, but is disabled
     # when min_games_for_player is 0 or None so that we avoid
     # discarding potentially informative rows.
-    season_col = _find_first_existing(weekly.columns, ["season"])
-    if season_col and min_games_for_player and min_games_for_player > 0:
+    if min_games_for_player and min_games_for_player > 0:
         game_counts = (
-            weekly.group_by([player_col, season_col])
+            weekly.group_by(["player_id", "season"])
             .agg(pl.len().alias("_games"))
             .filter(pl.col("_games") >= min_games_for_player)
         )
         weekly = weekly.join(
-            game_counts.select([player_col, season_col]),
-            on=[player_col, season_col],
+            game_counts.select(["player_id", "season"]),
+            on=["player_id", "season"],
             how="inner",
         )
 
@@ -119,30 +98,11 @@ def build_latest_snapshot(
     `before` (season, week) keeps only earlier games, to replay a past week.
     """
     weekly = _games_before(data_loader.load_player_weekly_stats(seasons), before)
-    players = data_loader.load_players()
 
     weekly = _normalize_receiving_columns(weekly)
     weekly = _merge_schedule_context(weekly, seasons)
 
-    player_col = _find_first_existing(weekly.columns, ["player_id", "gsis_id"])
-    if player_col is None:
-        raise ValueError("Weekly stats must have player_id or gsis_id.")
-    if "position" not in weekly.columns and not players.is_empty():
-        pos_col = _find_first_existing(players.columns, ["position", "pos"])
-        id_in_players = _find_first_existing(players.columns, ["player_id", "gsis_id"])
-        if pos_col and id_in_players:
-            players = players.select([id_in_players, pos_col]).unique()
-            if pos_col != "position":
-                players = players.rename({pos_col: "position"})
-            weekly = weekly.join(
-                players,
-                left_on=player_col,
-                right_on=id_in_players,
-                how="inner",
-            )
-    if "position" in weekly.columns:
-        weekly = weekly.filter(pl.col("position") == position)
-
+    weekly = _filter_to_position(weekly, position)
     weekly = filters.drop_special_teams_only_rows(weekly)
     weekly = features.add_basic_fantasy_points(weekly)
     weekly = targets.add_next_week_target(weekly)
@@ -154,11 +114,9 @@ def build_latest_snapshot(
     if merge_ff_opportunity:
         weekly, ff_extra_cols = _merge_ff_opportunity(weekly, seasons)
 
-    season_col = _find_first_existing(weekly.columns, ["season"])
-    week_col = _find_first_existing(weekly.columns, ["week"])
     latest = (
-        weekly.sort([player_col, season_col, week_col])
-        .group_by(player_col, maintain_order=True)
+        weekly.sort(features.GAME_ORDER)
+        .group_by("player_id", maintain_order=True)
         .last()
     )
 
@@ -298,11 +256,13 @@ def _normalize_receiving_columns(data_frame: pl.DataFrame) -> pl.DataFrame:
     return data_frame
 
 
-def _find_first_existing(columns: list[str], candidates: list[str]) -> str | None:
-    for col in candidates:
-        if col in columns:
-            return col
-    return None
+def _filter_to_position(weekly: pl.DataFrame, position: str) -> pl.DataFrame:
+    """
+    Keep one position's rows. nflverse weekly stats carry player_id and position
+    on every row, so both are required rather than looked up from another table.
+    """
+    features.require_columns(weekly, ["player_id", "position"], "filtering to a position")
+    return weekly.filter(pl.col("position") == position)
 
 
 def _merge_ff_opportunity(weekly: pl.DataFrame, seasons: list[int]) -> tuple[pl.DataFrame, list[str]]:
