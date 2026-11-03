@@ -15,7 +15,7 @@ RECEIVING_STATS = ["targets", "rec", "rec_yds", "rec_td"]
 # How much of a team's passing game a player commands.
 RECEIVING_USAGE_STATS = ["target_share", "air_yards_share", "wopr", "receiving_air_yards"]
 
-# Rushing stats. Inputs only for rushing projections: in the 2025 backtest, adding
+# Rushing stats. Inputs only for rushing projections: in the 2025 season holdout, adding
 # them to the points model made it worse for WRs who get carries (MAE 4.20 to 4.43).
 RUSHING_STATS = ["carries", "rushing_yards"]
 
