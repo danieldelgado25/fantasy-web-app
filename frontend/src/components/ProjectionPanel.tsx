@@ -71,7 +71,7 @@ export function ProjectionPanel({ projection, isLoading, error }: ProjectionPane
       <CardContent className="space-y-6">
         <div>
           <p className="text-muted-foreground text-sm">Projected PPR Points</p>
-          <p className="text-5xl font-bold tracking-tight">
+          <p className="text-5xl font-bold tracking-tight text-primary">
             {projection.pred_ppr_points.toFixed(2)}
           </p>
         </div>

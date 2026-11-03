@@ -59,7 +59,7 @@ export function AccuracyPanel({ accuracy }: AccuracyPanelProps) {
   return (
     <section className="space-y-4">
       <div className="space-y-1">
-        <h2 className="text-sm font-medium">How accurate is this?</h2>
+        <h2 className="text-lg font-semibold">How accurate is this?</h2>
         <p className="text-muted-foreground text-sm">
           Each week scores the top {topN} receivers. &quot;Points off&quot; is the average miss, so
           lower is better. &quot;Ranking&quot; is how well players were ordered, from -1 to 1, so

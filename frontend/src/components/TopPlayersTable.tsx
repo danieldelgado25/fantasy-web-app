@@ -50,7 +50,7 @@ export function TopPlayersTable({ players, selectedPlayerId, onSelect }: TopPlay
             <TableCell className="text-muted-foreground">
               Wk {player.week} vs {player.opponent_team}
             </TableCell>
-            <TableCell className="text-right font-semibold">
+            <TableCell className="text-right font-semibold text-primary">
               {player.pred_ppr_points.toFixed(1)}
             </TableCell>
           </TableRow>

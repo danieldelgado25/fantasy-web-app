@@ -52,9 +52,10 @@ function Index() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="border-b bg-card px-4 py-4">
+      {/* The thick green rule under the header is the theme's signature accent. */}
+      <header className="border-b-[3px] border-primary bg-card px-4 py-4">
         <div className="mx-auto max-w-2xl">
-          <h1 className="text-xl font-semibold tracking-tight">WR Projection Tool</h1>
+          <h1 className="text-3xl font-bold">WR Projection Tool</h1>
           <p className="text-muted-foreground text-sm">
             Fantasy football projections for NFL wide receivers
           </p>
@@ -88,7 +89,7 @@ function Index() {
 
           {topPlayers.length > 0 && (
             <section className="space-y-2">
-              <h2 className="text-sm font-medium">
+              <h2 className="text-lg font-semibold">
                 Top {TOP_PLAYERS_SHOWN} receivers by season PPR points
               </h2>
               <TopPlayersTable
