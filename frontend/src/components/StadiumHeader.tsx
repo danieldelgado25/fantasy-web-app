@@ -93,10 +93,16 @@ function Floodlight({ side }: { side: "left" | "right" }) {
     // Desktop only: on narrower screens the header text reaches the corners.
     <div
       aria-hidden
-      className={cn("absolute top-3 hidden lg:block", side === "left" ? "left-6" : "right-6 -scale-x-100")}
+      className={cn(
+        "absolute top-3 hidden lg:block",
+        side === "left" ? "left-6" : "right-6 -scale-x-100",
+      )}
     >
       <div className="absolute" style={BEAM} />
-      <Sprite rows={FLOODLIGHT} style={{ filter: "drop-shadow(0 0 4px oklch(0.99 0.03 95 / 0.7))" }} />
+      <Sprite
+        rows={FLOODLIGHT}
+        style={{ filter: "drop-shadow(0 0 4px oklch(0.99 0.03 95 / 0.7))" }}
+      />
     </div>
   );
 }
@@ -111,8 +117,16 @@ export function StadiumHeader({ children }: { children: ReactNode }) {
           height keeps the floodlight poles above the turf on short headers. */}
       <div className="relative px-4 pt-4 pb-16 lg:min-h-24 lg:pb-6">{children}</div>
       {/* On desktop the posts move inward so the floodlight beams land on them. */}
-      <Sprite rows={GOAL_POST} className="absolute left-4 lg:left-28" style={{ bottom: 4 * PIXEL }} />
-      <Sprite rows={GOAL_POST} className="absolute right-4 lg:right-28" style={{ bottom: 4 * PIXEL }} />
+      <Sprite
+        rows={GOAL_POST}
+        className="absolute left-4 lg:left-28"
+        style={{ bottom: 4 * PIXEL }}
+      />
+      <Sprite
+        rows={GOAL_POST}
+        className="absolute right-4 lg:right-28"
+        style={{ bottom: 4 * PIXEL }}
+      />
       <div aria-hidden style={TURF} />
     </header>
   );

@@ -37,9 +37,9 @@ export function Intro({ accuracy }: IntroProps) {
     <section className="space-y-3">
       <p className="text-sm leading-relaxed">
         A model that predicts each NFL wide receiver&apos;s PPR fantasy points for their next game,
-        using only information available before kickoff. It fits one Ridge regression per stat
-        on nflreadpy data, refreshes daily, and is scored in public against a simple baseline:
-        each player&apos;s average over their last 3 games.
+        using only information available before kickoff. It fits one Ridge regression per stat on
+        nflreadpy data, refreshes daily, and is scored in public against a simple baseline: each
+        player&apos;s average over their last 3 games.
       </p>
       {headline && (
         <div className="rounded-lg border bg-card p-4">
@@ -48,9 +48,7 @@ export function Intro({ accuracy }: IntroProps) {
           </p>
           <p className="mt-1 text-sm">
             Missed by{" "}
-            <span className="text-primary text-2xl font-bold">
-              {headline.modelMiss.toFixed(2)}
-            </span>{" "}
+            <span className="text-primary text-2xl font-bold">{headline.modelMiss.toFixed(2)}</span>{" "}
             points per player on average, vs {headline.baselineMiss.toFixed(2)} for the last-3
             average, over {headline.weeks} weeks.
           </p>

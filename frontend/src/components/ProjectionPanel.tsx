@@ -28,7 +28,9 @@ function bioFacts(p: PlayerProjection): { label: string; value: string }[] {
     { label: "Age", value: p.birth_date ? String(ageFrom(p.birth_date)) : null },
     {
       label: "Height",
-      value: p.height_inches ? `${Math.floor(p.height_inches / 12)}'${p.height_inches % 12}"` : null,
+      value: p.height_inches
+        ? `${Math.floor(p.height_inches / 12)}'${p.height_inches % 12}"`
+        : null,
     },
     { label: "Weight", value: p.weight_lbs ? `${p.weight_lbs} lb` : null },
     { label: "College", value: p.college ?? null },
