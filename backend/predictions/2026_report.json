@@ -7,14 +7,31 @@
     4,
     5,
     6,
-    7
+    7,
+    8
   ],
   "live": {
     "scores": [
       {
         "week": 8,
         "predicted": 11,
-        "played": 0
+        "played": 9,
+        "targets_mae": 1.1055555555555554,
+        "targets_baseline_mae": 1.2955555555555556,
+        "rec_mae": 1.0022222222222223,
+        "rec_baseline_mae": 1.1488888888888888,
+        "rec_yds_mae": 13.958888888888888,
+        "rec_yds_baseline_mae": 15.371111111111112,
+        "rec_td_mae": 0.2822222222222222,
+        "rec_td_baseline_mae": 0.2588888888888889,
+        "carries_mae": 0.31555555555555553,
+        "carries_baseline_mae": 0.4077777777777778,
+        "rushing_yards_mae": 5.536666666666667,
+        "rushing_yards_baseline_mae": 6.223333333333334,
+        "ppr_points_mae": 2.444444444444445,
+        "ppr_points_baseline_mae": 2.515555555555556,
+        "rank_correlation": 0.9958246164193104,
+        "baseline_rank_correlation": 0.9831932773109243
       },
       {
         "week": 9,
@@ -29,7 +46,7 @@
     ],
     "gate": {
       "passed": false,
-      "reason": "needs 4 finished weeks, has 0"
+      "reason": "needs 4 finished weeks, has 1"
     }
   },
   "replay": {
@@ -163,37 +180,37 @@
       {
         "week": 8,
         "predicted": 20,
-        "played": 16,
-        "targets_mae": 3.75875,
-        "targets_baseline_mae": 4.0,
-        "rec_mae": 3.005000000000001,
-        "rec_baseline_mae": 3.08375,
-        "rec_yds_mae": 41.170625,
-        "rec_yds_baseline_mae": 45.25000000000001,
-        "rec_td_mae": 0.549375,
-        "rec_td_baseline_mae": 0.604375,
-        "carries_mae": 0.291875,
-        "carries_baseline_mae": 0.27125,
-        "rushing_yards_mae": 3.0475,
-        "rushing_yards_baseline_mae": 2.85375,
-        "ppr_points_mae": 9.440624999999999,
-        "ppr_points_baseline_mae": 9.705000000000002,
-        "rank_correlation": -0.02354673190821041,
-        "baseline_rank_correlation": -0.08541973490427099
+        "played": 18,
+        "targets_mae": 3.4611111111111112,
+        "targets_baseline_mae": 3.7777777777777777,
+        "rec_mae": 2.872777777777778,
+        "rec_baseline_mae": 2.9822222222222226,
+        "rec_yds_mae": 37.81,
+        "rec_yds_baseline_mae": 42.74111111111111,
+        "rec_td_mae": 0.5449999999999999,
+        "rec_td_baseline_mae": 0.5927777777777777,
+        "carries_mae": 0.3433333333333333,
+        "carries_baseline_mae": 0.3894444444444444,
+        "rushing_yards_mae": 3.1588888888888884,
+        "rushing_yards_baseline_mae": 3.2405555555555554,
+        "ppr_points_mae": 8.841666666666665,
+        "ppr_points_baseline_mae": 8.882222222222223,
+        "rank_correlation": 0.08673207144463044,
+        "baseline_rank_correlation": -0.01652892561983471
       }
     ],
     "gate": {
       "passed": true,
       "weeks": [
-        4,
         5,
         6,
-        7
+        7,
+        8
       ],
-      "mae": 6.916,
-      "baseline_mae": 8.427,
-      "rank_correlation": 0.24,
-      "baseline_rank_correlation": 0.153,
+      "mae": 7.298,
+      "baseline_mae": 8.239,
+      "rank_correlation": 0.224,
+      "baseline_rank_correlation": 0.123,
       "all_predictions_made": true,
       "beats_baseline": true,
       "ranks_better_than_baseline": true
