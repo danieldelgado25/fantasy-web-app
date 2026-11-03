@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -6,8 +6,8 @@ import { AccuracyPanel } from "@/components/AccuracyPanel";
 import { Intro } from "@/components/Intro";
 import { PlayerSearch } from "@/components/PlayerSearch";
 import { ProjectionPanel } from "@/components/ProjectionPanel";
-import { ProjectLog } from "@/components/ProjectLog";
 import { TopPlayersTable } from "@/components/TopPlayersTable";
+import { Button } from "@/components/ui/button";
 import { fetchAccuracy, fetchProjections, type Player } from "@/lib/api";
 
 /** How many top-ranked players the table lists. Search reaches everyone else. */
@@ -106,7 +106,10 @@ function Index() {
           {/* Accuracy is secondary, so if it fails to load the projections still show. */}
           {accuracyQuery.data && <AccuracyPanel accuracy={accuracyQuery.data} />}
 
-          <ProjectLog />
+          {/* The log lives on its own page; this small link keeps it one click away. */}
+          <Button asChild variant="outline" size="sm">
+            <Link to="/log">View the project log</Link>
+          </Button>
         </div>
       </main>
     </div>
