@@ -83,6 +83,27 @@ def not_yet_kicked_off(frame: pl.DataFrame, now_eastern: datetime) -> pl.DataFra
     return frame.filter(kickoff.is_null() | (kickoff > now_eastern))
 
 
+def changed_after_kickoff(
+    old: pl.DataFrame, new: pl.DataFrame, team_schedule: pl.DataFrame, at_eastern: datetime
+) -> pl.DataFrame:
+    """
+    Logged predictions that were added, edited or removed at `at_eastern` (US Eastern,
+    like the schedule) for games that had already kicked off. Empty means the freeze held.
+    `team_schedule` has one row per team per game, as built by team_game_context.
+    """
+    # A row present on only one side was added, removed, or is one half of an edit.
+    differing = pl.concat(
+        [
+            old.join(new, on=new.columns, how="anti", nulls_equal=True),
+            new.join(old, on=new.columns, how="anti", nulls_equal=True),
+        ]
+    ).select(*LOG_KEY, "team").unique()
+    games = differing.join(
+        team_schedule.select("season", "week", "team", "gameday", "gametime"), on=["season", "week", "team"], how="left"
+    )
+    return games.join(not_yet_kicked_off(games, at_eastern), on=LOG_KEY, how="anti").sort(LOG_KEY)
+
+
 def upsert_log(path: str, rows: pl.DataFrame) -> pl.DataFrame:
     """
     Write `rows` into the log at `path`, replacing any earlier prediction for the

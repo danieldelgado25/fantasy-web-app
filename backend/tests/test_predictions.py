@@ -45,6 +45,28 @@ def test_add_rank_orders_best_first_and_puts_players_without_points_last() -> No
     assert result["rank"].to_list() == [2, 1, 3]
 
 
+def test_changed_after_kickoff_flags_only_games_that_had_started() -> None:
+    old = pl.DataFrame({"season": [2026] * 3, "week": [9] * 3, "player_id": ["A", "B", "C"], "team": ["SEA", "SF", "SEA"], "pred": [1.0, 2.0, 3.0]})
+    # A and B edited, C removed, D added. SEA kicked off at 13:00; SF plays at 20:20.
+    new = pl.DataFrame({"season": [2026] * 3, "week": [9] * 3, "player_id": ["A", "B", "D"], "team": ["SEA", "SF", "SEA"], "pred": [9.0, 9.0, 4.0]})
+    schedule = pl.DataFrame(
+        {"season": [2026, 2026], "week": [9, 9], "team": ["SEA", "SF"], "gameday": ["2026-11-08"] * 2, "gametime": ["13:00", "20:20"]}
+    )
+
+    result = predictions.changed_after_kickoff(old, new, schedule, datetime(2026, 11, 8, 13, 30))
+
+    # B's game hadn't started, so editing it is allowed; every SEA change is not.
+    assert result["player_id"].to_list() == ["A", "C", "D"]
+
+
+def test_changed_after_kickoff_is_empty_when_nothing_changed() -> None:
+    log = pl.DataFrame({"season": [2026], "week": [9], "player_id": ["A"], "team": ["SEA"], "pred": [None]})
+    schedule = pl.DataFrame({"season": [2026], "week": [9], "team": ["SEA"], "gameday": ["2026-11-08"], "gametime": ["13:00"]})
+
+    # A null value must still count as unchanged.
+    assert predictions.changed_after_kickoff(log, log, schedule, datetime(2026, 11, 9)).is_empty()
+
+
 def test_not_yet_kicked_off_uses_time_and_keeps_unknown_times() -> None:
     frame = pl.DataFrame(
         {
