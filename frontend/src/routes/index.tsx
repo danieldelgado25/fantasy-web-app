@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { AccuracyPanel } from "@/components/AccuracyPanel";
+import { Intro } from "@/components/Intro";
 import { PlayerSearch } from "@/components/PlayerSearch";
 import { ProjectionPanel } from "@/components/ProjectionPanel";
 import { ProjectLog } from "@/components/ProjectLog";
@@ -69,6 +70,8 @@ function Index() {
 
       <main className="flex-1 px-4 py-8">
         <div className="mx-auto max-w-2xl space-y-6">
+          <Intro accuracy={accuracyQuery.data} />
+
           <div className="space-y-2">
             <label htmlFor="player-search" className="text-sm font-medium leading-none">
               Select a player
