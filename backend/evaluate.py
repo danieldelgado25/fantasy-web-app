@@ -24,6 +24,7 @@ from wr_predictor.predictions import (
     build_log_rows,
     build_review,
     check_gate,
+    live_weeks_only,
     score_predictions,
     season_points,
     summarize_accuracy,
@@ -127,6 +128,8 @@ def main() -> None:
     for label, path in (("live", live_path), ("replay", replay_path)):
         if os.path.exists(path):
             log = pl.read_csv(path)
+            if label == "live":
+                log = live_weeks_only(log, season)
             # A plain table of predicted vs actual, readable on GitHub.
             build_review(log, actuals).write_csv(path.removesuffix(".csv") + "_review.csv")
             scores = score_predictions(log, actuals)

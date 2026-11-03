@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { AccuracyPanel } from "@/components/AccuracyPanel";
+import { HowItWorks } from "@/components/HowItWorks";
 import { Intro } from "@/components/Intro";
 import { PlayerSearch } from "@/components/PlayerSearch";
 import { ProjectionPanel } from "@/components/ProjectionPanel";
@@ -10,6 +11,7 @@ import { StadiumHeader } from "@/components/StadiumHeader";
 import { TopPlayersTable } from "@/components/TopPlayersTable";
 import { Button } from "@/components/ui/button";
 import { fetchAccuracy, fetchProjections, type Player } from "@/lib/api";
+import { REPOSITORY_URL } from "@/lib/projectLog";
 
 /** How many top-ranked players the table lists. Search reaches everyone else. */
 const TOP_PLAYERS_SHOWN = 20;
@@ -106,10 +108,17 @@ function Index() {
           {/* Accuracy is secondary, so if it fails to load the projections still show. */}
           {accuracyQuery.data && <AccuracyPanel accuracy={accuracyQuery.data} />}
 
-          {/* The log lives on its own page; this small link keeps it one click away. */}
-          <Button asChild variant="outline" size="sm">
-            <Link to="/log">View the project log</Link>
-          </Button>
+          <HowItWorks />
+
+          {/* The log lives on its own page; these small links keep it and the code one click away. */}
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link to="/log">View the project log</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <a href={REPOSITORY_URL}>Source code on GitHub</a>
+            </Button>
+          </div>
         </div>
       </main>
     </div>

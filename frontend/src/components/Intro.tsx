@@ -24,14 +24,22 @@ function summarize(results: AccuracyResults): Headline | null {
   };
 }
 
+/** Finished live weeks needed before they lead the page. Matches the backend's passing bar. */
+const LIVE_WEEKS_NEEDED = 4;
+
 /**
- * What the project is and its headline result. Live results are preferred; until any
- * exist, the replay result is shown and labeled as a test so the two are never confused.
+ * What the project is and its headline result. Live results lead once there are enough
+ * finished weeks to judge; until then the replay leads, labeled as a test so the two are
+ * never confused, with a line showing live tracking's progress.
  */
 export function Intro({ accuracy }: IntroProps) {
-  const live = accuracy && summarize(accuracy.live);
+  const liveSummary = accuracy && summarize(accuracy.live);
   const replay = accuracy?.replay && summarize(accuracy.replay);
-  const headline = live ?? replay;
+  const live = liveSummary && liveSummary.weeks >= LIVE_WEEKS_NEEDED ? liveSummary : null;
+  const headline = live ?? replay ?? liveSummary;
+  // Shown only while the replay leads, so visitors know live scoring is underway.
+  const liveWeeks = accuracy?.live.weeks.length ?? 0;
+  const showProgress = headline === replay;
 
   return (
     <section className="space-y-3">
@@ -41,17 +49,26 @@ export function Intro({ accuracy }: IntroProps) {
         nflreadpy data, refreshes daily, and is scored in public against a simple baseline: each
         player&apos;s average over their last 3 games.
       </p>
-      {headline && (
+      {accuracy && headline && (
         <div className="rounded-lg border bg-card p-4">
           <p className="text-muted-foreground text-xs uppercase tracking-wide">
-            {live ? "Live predictions" : "Test run on past weeks, not live predictions"}
+            {headline === replay
+              ? "Test run on past weeks, not live predictions"
+              : "Live predictions"}
           </p>
           <p className="mt-1 text-sm">
             Missed by{" "}
             <span className="text-primary text-2xl font-bold">{headline.modelMiss.toFixed(2)}</span>{" "}
-            points per player on average, vs {headline.baselineMiss.toFixed(2)} for the last-3
-            average, over {headline.weeks} weeks.
+            points per top-{accuracy.top_n} receiver on average, vs{" "}
+            {headline.baselineMiss.toFixed(2)} for the last-3 average, over {headline.weeks}{" "}
+            {headline.weeks === 1 ? "week" : "weeks"}.
           </p>
+          {showProgress && (
+            <p className="text-muted-foreground mt-1 text-xs">
+              Live tracking: {Math.min(liveWeeks, LIVE_WEEKS_NEEDED)} of {LIVE_WEEKS_NEEDED} weeks
+              scored. Live results replace this once {LIVE_WEEKS_NEEDED} weeks finish.
+            </p>
+          )}
         </div>
       )}
     </section>

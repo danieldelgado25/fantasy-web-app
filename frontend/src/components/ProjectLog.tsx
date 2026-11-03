@@ -24,6 +24,13 @@ export function ProjectLog() {
           </a>
           .
         </p>
+        {/* Defined once here so every entry's numbers can be read the same way. */}
+        <p className="text-muted-foreground text-sm">
+          MAE is the average points miss per player, so lower is better. Ranking is the Spearman
+          rank correlation between predicted and actual results for each week&apos;s players,
+          averaged across weeks: 1 is a perfect order, 0 is no better than chance. It measures
+          points unless a stat, such as catches, is named.
+        </p>
       </div>
       <ol className="space-y-4">
         {PROJECT_LOG.map((entry) => (

@@ -15,10 +15,31 @@ export const REPOSITORY_URL = "https://github.com/danieldelgado25/fantasy-web-ap
 
 /**
  * Newest first. Add an entry whenever the model, its evaluation or the site changes in a
- * way worth explaining, including tests that didn't work out. MAE is the average miss, so
- * lower is better. Ranking is how well players were ordered, from -1 to 1.
+ * way worth explaining, including tests that didn't work out. State which players and
+ * seasons each MAE covers, because top-20 and all-WR figures differ a lot.
  */
 export const PROJECT_LOG: ProjectLogEntry[] = [
+  {
+    date: "2026-11-03",
+    title: "Made the prediction freeze an enforced rule",
+    why: "That predictions are saved before kickoff was only checkable by reading git history.",
+    result:
+      "A check now runs in CI and in the daily job before it pushes. It fails if any commit added, edited or removed a prediction for a game that had already started.",
+  },
+  {
+    date: "2026-11-03",
+    title: "Tested scaling the inputs and tuning the penalty",
+    why: "Ridge penalizes each input by its scale, so unscaled yards (0-200) and target share (0-1) were treated very differently, and the penalty was fixed at 1.0.",
+    result:
+      "Scaling with a penalty tuned by season or each week stayed within noise for each week's top 20: ranking +0.005 and MAE -0.010 over 2023-2025, then -0.004 and +0.010 on 2026. The model is unchanged.",
+  },
+  {
+    date: "2026-11-03",
+    title: "Made the results easier to read",
+    why: "A review pointed out that MAE figures for different player sets looked contradictory, and that the ranking metric was never named.",
+    result:
+      "Each MAE now says which players and seasons it covers, ranking is named as Spearman rank correlation, and a How it works section lists the seven models. The test run leads the page until four live weeks are scored.",
+  },
   {
     date: "2026-11-02",
     title: "First production deployment",
@@ -66,7 +87,7 @@ export const PROJECT_LOG: ProjectLogEntry[] = [
     title: "Added next-game context the correct way",
     why: "Home or away, dome and betting lines had been removed because training used the game just played, while predictions used the next game.",
     result:
-      "Training now uses the game being predicted. Over 2023-2025, ranking rose from 0.241 to 0.258 and MAE fell from 6.712 to 6.673: a small gain, but the only input that helped in both periods tested.",
+      "Training now uses the game being predicted. Replaying 2023-2025 week by week for each week's top 20 receivers, ranking rose from 0.241 to 0.258 and MAE fell from 6.712 to 6.673: a small gain, but the only input that helped in both periods tested.",
   },
   {
     date: "2026-11-02",
@@ -80,13 +101,13 @@ export const PROJECT_LOG: ProjectLogEntry[] = [
     title: "Corrected the baseline and switched to official scoring",
     why: "Averages were skipping each player's latest game, and the points formula left out rushing, fumbles and 2-point conversions.",
     result:
-      "On the 2025 season, baseline MAE improved from 4.97 to 4.94 and the model's from 4.68 to 4.67. Points now match official PPR totals.",
+      "Across every WR game of the 2025 season, baseline MAE improved from 4.97 to 4.94 and the model's from 4.68 to 4.67. This includes low-usage receivers, so it runs lower than top-20 figures. Points now match official PPR totals.",
   },
   {
     date: "2026-11-01",
     title: "Removed weather from the model",
     why: "Game-time weather isn't known before kickoff, which conflicts with the project's rule against using future information.",
     result:
-      "Accuracy was unchanged on the same 2025 games (MAE 4.676 vs 4.675), and usable training rows rose from 6,117 to 10,640.",
+      "Accuracy was unchanged across every WR game of 2025 (MAE 4.676 vs 4.675), and usable training rows rose from 6,117 to 10,640.",
   },
 ];

@@ -8,12 +8,14 @@ Fantasy football is noisy, so the goal isn't a perfect forecast. It's a reproduc
 
 ## Results so far
 
-Replay of 2026 weeks 4-7, where each week's top 20 receivers were predicted using only earlier games:
+**Headline: 16% lower MAE than the baseline (7.10 vs 8.47)**, replaying 2026 weeks 2-8 for each week's top 20 receivers, the same players the site scores. Each week was predicted using only earlier games:
 
 | Measure | Model | Last-3-games average |
 |---|---|---|
-| Average points miss (MAE, lower is better) | 6.92 | 8.43 |
-| Ranking of players (rank correlation, higher is better) | 0.24 | 0.15 |
+| Average points miss (MAE, lower is better) | 7.10 | 8.47 |
+| Ranking of players (Spearman rank correlation, averaged by week, higher is better) | 0.29 | 0.18 |
+
+Other MAE figures in the project log cover different players or seasons and say so. For example, MAE across every WR game is lower, around 4.7, because it includes low-usage receivers who are easy to predict.
 
 These numbers are a test of the method, not proof. The real test is predictions saved before kickoff, starting with week 9 of 2026, in [`backend/predictions/`](backend/predictions/). A week's predictions freeze at kickoff, and the git history shows when each was made. [`check_freeze.py`](backend/check_freeze.py) enforces this: CI and the daily job fail if any commit added, edited or removed a prediction for a game that had already started.
 
