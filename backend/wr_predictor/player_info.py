@@ -56,6 +56,26 @@ def game_context(ranked: pl.DataFrame) -> pl.DataFrame:
     )
 
 
+def defense_vs_wr(stats: pl.DataFrame, season: int) -> pl.DataFrame:
+    """
+    PPR points each defense has allowed to WRs per game in `season`'s regular season,
+    and its rank among defenses: 1 allows the most, so it is the easiest matchup.
+    Display only, not a model input: a few games against uneven receiver groups make
+    it too noisy to trust, so the projection doesn't use it. Keyed by opponent_team,
+    so it joins straight onto each player's upcoming opponent.
+    """
+    played = stats.filter((pl.col("season") == season) & (pl.col("season_type") == "REG"))
+    # Total WR points per defense per game first, so games with more WRs aren't averaged down.
+    per_game = played.group_by("opponent_team", "week").agg(pl.col("fantasy_points_ppr").sum())
+    return (
+        per_game.group_by("opponent_team")
+        .agg(pl.col("fantasy_points_ppr").mean().round(2).alias("opp_wr_points_allowed"))
+        .with_columns(
+            pl.col("opp_wr_points_allowed").rank("min", descending=True).cast(pl.Int32).alias("opp_wr_allowed_rank")
+        )
+    )
+
+
 def player_profiles(players: pl.DataFrame) -> pl.DataFrame:
     """One row of bio details per player, from nflreadpy's player table."""
     return players.select([pl.col(src).alias(dst) for src, dst in PROFILE_COLUMNS.items()]).unique("player_id")
