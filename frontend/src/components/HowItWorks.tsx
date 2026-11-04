@@ -42,6 +42,12 @@ export function HowItWorks() {
           trained directly on official PPR totals. It is not added up from the other six, which are
           shown to explain it.
         </li>
+        {/* Says what the Start/Sit tab shows that the model doesn't use, so the two aren't confused. */}
+        <li>
+          <span className="font-medium">Not an input.</span> The Start/Sit tab also shows how many
+          WR points each opponent allows per game. The model doesn&apos;t use it: a few games against
+          uneven receiver groups make it too inconsistent to rely on.
+        </li>
       </ol>
       <ul className="flex flex-wrap gap-2">
         {MODEL_STATS.map((stat) => (
