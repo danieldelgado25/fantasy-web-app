@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import polars as pl
 
+from wr_predictor.stats import NEUTRAL_TOTAL_LINE
+
 """
 Display-only player details for the website: bio, headshot, team logo and
 season-to-date stats. Nothing here feeds the model or the prediction log.
@@ -26,6 +28,32 @@ SEASON_STAT_COLUMNS = {
     "receiving_yards": "season_rec_yds",
     "receiving_tds": "season_rec_td",
 }
+
+# The upcoming game as the model saw it, renamed for the site. These are the model's own
+# next_* inputs, so the matchup shown is exactly what the projection was based on.
+GAME_CONTEXT_COLUMNS = {
+    "next_is_home": "is_home",
+    "next_is_dome": "is_dome",
+    "next_total_line": "game_total",
+    "next_implied_total": "team_implied_total",
+    "gameday": "gameday",
+    "gametime": "gametime",
+}
+
+
+def game_context(ranked: pl.DataFrame) -> pl.DataFrame:
+    """
+    One row per player with their upcoming game's details, plus line_posted. Before a
+    betting line is posted the model uses a neutral stand-in total, which the site
+    shouldn't show as a real line.
+    """
+    # ponytail: detects the stand-in by value. Safe because real totals move in half
+    # points and the stand-in (44.7) doesn't; carry a flag from the schedule if that changes.
+    return ranked.select(
+        "player_id",
+        *[pl.col(src).alias(dst) for src, dst in GAME_CONTEXT_COLUMNS.items()],
+        (pl.col("next_total_line") != NEUTRAL_TOTAL_LINE).alias("line_posted"),
+    )
 
 
 def player_profiles(players: pl.DataFrame) -> pl.DataFrame:

@@ -1,6 +1,7 @@
 import polars as pl
 
-from wr_predictor.player_info import add_player_info
+from wr_predictor.player_info import add_player_info, game_context
+from wr_predictor.stats import NEUTRAL_TOTAL_LINE
 
 """
 Uses Pytest to verify the display-only player details added to the website file.
@@ -57,3 +58,28 @@ def test_add_player_info_joins_details_and_keeps_players_missing_from_sources() 
     }
     # A player missing from every source keeps their row, with empty details.
     assert result["headshot_url"][1] is None and result["team_logo_url"][1] is None
+
+
+def test_game_context_renames_model_inputs_and_flags_stand_in_lines() -> None:
+    # B's game has no posted line yet, so the model used the neutral stand-in total.
+    ranked = pl.DataFrame(
+        {
+            "player_id": ["A", "B"],
+            "next_is_home": [1, 0],
+            "next_is_dome": [0, 1],
+            "next_total_line": [47.5, NEUTRAL_TOTAL_LINE],
+            "next_implied_total": [26.0, 22.35],
+            "gameday": ["2026-11-08", "2026-11-09"],
+            "gametime": ["13:00", "20:15"],
+            "pred_ppr_points": [19.4, 12.1],
+        }
+    )
+
+    result = game_context(ranked).sort("player_id")
+
+    # Only the game columns come through, under the site's names.
+    assert result.columns == [
+        "player_id", "is_home", "is_dome", "game_total", "team_implied_total", "gameday", "gametime", "line_posted"
+    ]
+    assert result["game_total"].to_list() == [47.5, NEUTRAL_TOTAL_LINE]
+    assert result["line_posted"].to_list() == [True, False]
