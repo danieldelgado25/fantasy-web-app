@@ -36,8 +36,9 @@ function kickoffLabel(p: PlayerProjection): string | null {
   return `${weekday} ${hour % 12 || 12}:${String(minute).padStart(2, "0")} ${hour < 12 ? "AM" : "PM"} ET`;
 }
 
-/** "vs DAL" at home, "@ DAL" away. */
+/** "vs DAL" at home, "@ DAL" away, or just "DAL" when the file doesn't say which. */
 function opponentLabel(p: PlayerProjection): string {
+  if (p.is_home == null) return p.opponent_team;
   return `${p.is_home === 0 ? "@" : "vs"} ${p.opponent_team}`;
 }
 
@@ -67,7 +68,10 @@ export function StartSitCompare({ a, b }: StartSitCompareProps) {
     { label: "Kickoff", value: (p) => kickoffLabel(p) ?? "—" },
     { label: "Team implied points", value: (p) => lineValue(p, p.team_implied_total) },
     { label: "Game total", value: (p) => lineValue(p, p.game_total) },
-    { label: "Roof", value: (p) => (p.is_dome === 1 ? "Dome" : "Outdoors") },
+    {
+      label: "Roof",
+      value: (p) => (p.is_dome == null ? "—" : p.is_dome === 1 ? "Dome" : "Outdoors"),
+    },
     { label: "Opp. WR points allowed", value: defenseValue },
   ];
 
