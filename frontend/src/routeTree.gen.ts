@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccuracyRouteImport } from './routes/accuracy'
 import { Route as LogRouteImport } from './routes/log'
+import { Route as StartSitRouteImport } from './routes/start-sit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const LogRoute = LogRouteImport.update({
   path: '/log',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StartSitRoute = StartSitRouteImport.update({
+  id: '/start-sit',
+  path: '/start-sit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accuracy': typeof AccuracyRoute
   '/log': typeof LogRoute
+  '/start-sit': typeof StartSitRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accuracy': typeof AccuracyRoute
   '/log': typeof LogRoute
+  '/start-sit': typeof StartSitRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/accuracy': typeof AccuracyRoute
   '/log': typeof LogRoute
+  '/start-sit': typeof StartSitRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/accuracy' | '/log'
+  fullPaths: '/' | '/accuracy' | '/log' | '/start-sit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/accuracy' | '/log'
-  id: '__root__' | '/' | '/accuracy' | '/log'
+  to: '/' | '/accuracy' | '/log' | '/start-sit'
+  id: '__root__' | '/' | '/accuracy' | '/log' | '/start-sit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccuracyRoute: typeof AccuracyRoute
   LogRoute: typeof LogRoute
+  StartSitRoute: typeof StartSitRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/start-sit': {
+      id: '/start-sit'
+      path: '/start-sit'
+      fullPath: '/start-sit'
+      preLoaderRoute: typeof StartSitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccuracyRoute: AccuracyRoute,
   LogRoute: LogRoute,
+  StartSitRoute: StartSitRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
