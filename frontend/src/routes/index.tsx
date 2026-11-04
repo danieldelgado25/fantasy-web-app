@@ -2,15 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { AccuracyPanel } from "@/components/AccuracyPanel";
-import { HowItWorks } from "@/components/HowItWorks";
 import { Intro } from "@/components/Intro";
 import { PlayerSearch } from "@/components/PlayerSearch";
 import { ProjectionPanel } from "@/components/ProjectionPanel";
 import { TopPlayersTable } from "@/components/TopPlayersTable";
-import { Button } from "@/components/ui/button";
 import { fetchAccuracy, fetchProjections, type Player } from "@/lib/api";
-import { REPOSITORY_URL } from "@/lib/projectLog";
 
 /** How many top-ranked players the table lists. Search reaches everyone else. */
 const TOP_PLAYERS_SHOWN = 20;
@@ -87,15 +83,6 @@ function Index() {
           />
         </section>
       )}
-
-      {/* Accuracy is secondary, so if it fails to load the projections still show. */}
-      {accuracyQuery.data && <AccuracyPanel accuracy={accuracyQuery.data} />}
-
-      <HowItWorks />
-
-      <Button asChild variant="outline" size="sm">
-        <a href={REPOSITORY_URL}>Source code on GitHub</a>
-      </Button>
     </div>
   );
 }
