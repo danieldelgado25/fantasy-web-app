@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccuracyRouteImport } from './routes/accuracy'
 import { Route as LogRouteImport } from './routes/log'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccuracyRoute = AccuracyRouteImport.update({
+  id: '/accuracy',
+  path: '/accuracy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LogRoute = LogRouteImport.update({
@@ -25,27 +31,31 @@ const LogRoute = LogRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/accuracy': typeof AccuracyRoute
   '/log': typeof LogRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/accuracy': typeof AccuracyRoute
   '/log': typeof LogRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/accuracy': typeof AccuracyRoute
   '/log': typeof LogRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/log'
+  fullPaths: '/' | '/accuracy' | '/log'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/log'
-  id: '__root__' | '/' | '/log'
+  to: '/' | '/accuracy' | '/log'
+  id: '__root__' | '/' | '/accuracy' | '/log'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccuracyRoute: typeof AccuracyRoute
   LogRoute: typeof LogRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/accuracy': {
+      id: '/accuracy'
+      path: '/accuracy'
+      fullPath: '/accuracy'
+      preLoaderRoute: typeof AccuracyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/log': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccuracyRoute: AccuracyRoute,
   LogRoute: LogRoute,
 }
 export const routeTree = rootRouteImport

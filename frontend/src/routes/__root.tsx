@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+import { SiteHeader } from "@/components/SiteHeader";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -122,8 +123,16 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      {/* Every tab shares one header and page frame; each route renders only its content. */}
+      <div className="flex min-h-screen flex-col bg-background">
+        <SiteHeader />
+        <main className="flex-1 px-4 py-8">
+          <div className="mx-auto max-w-2xl">
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </QueryClientProvider>
   );
 }

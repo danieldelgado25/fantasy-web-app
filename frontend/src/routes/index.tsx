@@ -1,17 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { AccuracyPanel } from "@/components/AccuracyPanel";
-import { HowItWorks } from "@/components/HowItWorks";
 import { Intro } from "@/components/Intro";
 import { PlayerSearch } from "@/components/PlayerSearch";
 import { ProjectionPanel } from "@/components/ProjectionPanel";
-import { StadiumHeader } from "@/components/StadiumHeader";
 import { TopPlayersTable } from "@/components/TopPlayersTable";
-import { Button } from "@/components/ui/button";
 import { fetchAccuracy, fetchProjections, type Player } from "@/lib/api";
-import { REPOSITORY_URL } from "@/lib/projectLog";
 
 /** How many top-ranked players the table lists. Search reaches everyone else. */
 const TOP_PLAYERS_SHOWN = 20;
@@ -49,78 +44,45 @@ function Index() {
     queryFn: fetchAccuracy,
   });
 
-  const generatedAt = projectionsQuery.data?.generated_at;
   const players = projectionsQuery.data?.players ?? [];
   const topPlayers = players.filter((p) => p.rank <= TOP_PLAYERS_SHOWN);
   const selectedProjection = players.find((p) => p.player_id === selectedPlayer?.player_id) ?? null;
 
+  // The shared header, tab bar and page frame come from __root.tsx.
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <StadiumHeader>
-        <div className="mx-auto max-w-2xl">
-          <h1 className="text-3xl font-bold">WR Projection Tool</h1>
-          <p className="text-muted-foreground text-sm">
-            Fantasy football projections for NFL wide receivers
-          </p>
-          <p className="text-muted-foreground mt-2 text-xs">
-            Estimates from a statistical model trained on past NFL games, not guarantees. Injuries
-            and late news may not be reflected.
-            {generatedAt && ` Updated ${new Date(generatedAt).toLocaleString()}.`}
-          </p>
-        </div>
-      </StadiumHeader>
+    <div className="space-y-6">
+      <Intro accuracy={accuracyQuery.data} />
 
-      <main className="flex-1 px-4 py-8">
-        <div className="mx-auto max-w-2xl space-y-6">
-          <Intro accuracy={accuracyQuery.data} />
+      <div className="space-y-2">
+        <label htmlFor="player-search" className="text-sm font-medium leading-none">
+          Select a player
+        </label>
+        <PlayerSearch
+          players={players}
+          selectedPlayer={selectedPlayer}
+          onSelect={setSelectedPlayer}
+          disabled={projectionsQuery.isLoading}
+        />
+      </div>
 
-          <div className="space-y-2">
-            <label htmlFor="player-search" className="text-sm font-medium leading-none">
-              Select a player
-            </label>
-            <PlayerSearch
-              players={players}
-              selectedPlayer={selectedPlayer}
-              onSelect={setSelectedPlayer}
-              disabled={projectionsQuery.isLoading}
-            />
-          </div>
+      <ProjectionPanel
+        projection={selectedProjection}
+        isLoading={projectionsQuery.isLoading}
+        error={projectionsQuery.error as Error | null}
+      />
 
-          <ProjectionPanel
-            projection={selectedProjection}
-            isLoading={projectionsQuery.isLoading}
-            error={projectionsQuery.error as Error | null}
+      {topPlayers.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="text-lg font-semibold">
+            Top {TOP_PLAYERS_SHOWN} receivers by season PPR points
+          </h2>
+          <TopPlayersTable
+            players={topPlayers}
+            selectedPlayerId={selectedPlayer?.player_id ?? null}
+            onSelect={setSelectedPlayer}
           />
-
-          {topPlayers.length > 0 && (
-            <section className="space-y-2">
-              <h2 className="text-lg font-semibold">
-                Top {TOP_PLAYERS_SHOWN} receivers by season PPR points
-              </h2>
-              <TopPlayersTable
-                players={topPlayers}
-                selectedPlayerId={selectedPlayer?.player_id ?? null}
-                onSelect={setSelectedPlayer}
-              />
-            </section>
-          )}
-
-          {/* Accuracy is secondary, so if it fails to load the projections still show. */}
-          {accuracyQuery.data && <AccuracyPanel accuracy={accuracyQuery.data} />}
-
-          <HowItWorks />
-
-          {/* The log lives on its own page; these small links keep it and the code one click away. */}
-          <div className="flex flex-wrap gap-2">
-            <Button asChild variant="outline" size="sm">
-              <Link to="/log">View the project log</Link>
-            </Button>
-            <Button asChild variant="outline" size="sm">
-              <a href={REPOSITORY_URL}>Source code on GitHub</a>
-            </Button>
-          </div>
-        </div>
-      </main>
+        </section>
+      )}
     </div>
   );
 }
