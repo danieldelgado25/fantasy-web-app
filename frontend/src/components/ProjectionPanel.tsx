@@ -3,6 +3,7 @@ import { AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { InjuryIcon } from "@/components/InjuryIcon";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { PlayerProjection } from "@/lib/api";
 
@@ -104,7 +105,10 @@ export function ProjectionPanel({ projection, isLoading, error }: ProjectionPane
               />
             )}
             <div>
-              <CardTitle>{projection.player_name}</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                {projection.player_name}
+                <InjuryIcon status={projection.injury_status} note={projection.injury_note} />
+              </CardTitle>
               <p className="text-muted-foreground mt-1 flex items-center gap-1.5 text-sm">
                 {projection.team_logo_url && (
                   <img src={projection.team_logo_url} alt="" className="h-5 w-5" />
@@ -113,6 +117,10 @@ export function ProjectionPanel({ projection, isLoading, error }: ProjectionPane
                 {projection.jersey_number && ` · #${projection.jersey_number}`} · Week{" "}
                 {projection.week}, {projection.season}
               </p>
+              {/* Spelled out too, since hover details don't exist on phones. */}
+              {projection.injury_note && (
+                <p className="text-muted-foreground mt-1 text-xs">{projection.injury_note}</p>
+              )}
             </div>
           </div>
           <Badge variant="secondary" className="shrink-0 whitespace-nowrap">

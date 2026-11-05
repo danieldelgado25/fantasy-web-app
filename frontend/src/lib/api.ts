@@ -50,7 +50,15 @@ export interface PlayerProjection {
   opp_wr_points_allowed?: number | null;
   /** Opponent's rank by WR points allowed. 1 allows the most (easiest matchup). */
   opp_wr_allowed_rank?: number | null;
+  // Display only, from the official injury report (backend player_info.add_injury_status).
+  /** Worst status for the projected game. Null or absent means healthy. */
+  injury_status?: InjuryStatus | null;
+  /** Report details, e.g. "Questionable · Did not practice · Hamstring". */
+  injury_note?: string | null;
 }
+
+/** Injury statuses, worst to best. IR is never sent today: IR players are left off the site. */
+export type InjuryStatus = "IR" | "Out" | "Doubtful" | "DNP" | "Questionable";
 
 /** The static file the daily job publishes. */
 export interface ProjectionsFile {

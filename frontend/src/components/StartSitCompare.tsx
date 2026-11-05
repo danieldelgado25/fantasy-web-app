@@ -7,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { InjuryIcon } from "@/components/InjuryIcon";
 import type { PlayerProjection } from "@/lib/api";
 
 /**
@@ -73,6 +74,8 @@ export function StartSitCompare({ a, b }: StartSitCompareProps) {
       value: (p) => (p.is_dome == null ? "—" : p.is_dome === 1 ? "Dome" : "Outdoors"),
     },
     { label: "Opp. WR points allowed", value: defenseValue },
+    // Spelled out, since hover details on the icon don't exist on phones.
+    { label: "Injury report", value: (p) => p.injury_note ?? "Not listed" },
   ];
 
   return (
@@ -90,8 +93,11 @@ export function StartSitCompare({ a, b }: StartSitCompareProps) {
           <TableHeader>
             <TableRow>
               <TableHead />
-              <TableHead>{a.player_name}</TableHead>
-              <TableHead>{b.player_name}</TableHead>
+              {[a, b].map((p) => (
+                <TableHead key={p.player_id}>
+                  {p.player_name} <InjuryIcon status={p.injury_status} note={p.injury_note} />
+                </TableHead>
+              ))}
             </TableRow>
           </TableHeader>
           <TableBody>
