@@ -6,16 +6,25 @@ name: Refresh projections
 
 on:
   schedule:
-    # 10:17 UTC is before every kickoff that day, and gives stats from the previous
-    # day's games time to land. September through February only: no games otherwise.
+    # Twice a day, because GitHub has started these runs up to ~8 hours late.
+    # 08:17 UTC (3:17am ET): after the previous night's stats land. Even ~8 hours late,
+    # it finishes before Sunday's 1pm ET kickoffs.
+    # 14:17 UTC (9:17am ET): picks up morning betting-line moves, which reflect injury
+    # news, before early kickoffs. Games already started are skipped, so a late run is safe.
+    # September through February only: no games otherwise.
     # Off the hour on purpose: GitHub can drop scheduled runs set for :00 when busy.
-    - cron: "17 10 * 1,2,9-12 *"
+    - cron: "17 8,14 * 1,2,9-12 *"
   # Allows a manual refresh from the GitHub Actions tab.
   workflow_dispatch:
 
 # Needed to push the commit below.
 permissions:
   contents: write
+
+# A late run can overlap the next one. Queue it instead, so two pushes don't collide.
+concurrency:
+  group: refresh-projections
+  cancel-in-progress: false
 
 jobs:
   refresh:
