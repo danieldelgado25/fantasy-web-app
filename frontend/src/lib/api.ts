@@ -122,3 +122,35 @@ export async function fetchAccuracy(): Promise<AccuracyFile> {
   }
   return response.json();
 }
+
+/** One WR's current injury status in the news feed, as written by backend/write_injury_news.py. */
+export interface InjuryNewsEntry {
+  player_id: string;
+  player_name: string;
+  team: string;
+  /** Week of the injury report or roster the status comes from. */
+  week: number;
+  injury_status: InjuryStatus;
+  /** Report details, e.g. "Questionable · Did not practice · Hamstring". */
+  injury_note: string;
+  /** UTC ISO time the pipeline first saw this status. */
+  first_seen: string;
+}
+
+/** The injury news file the daily job publishes. Entries are newest first. */
+export interface InjuryNewsFile {
+  generated_at: string;
+  players: InjuryNewsEntry[];
+}
+
+/** Location of the published injury news feed, served from frontend/public. */
+const INJURIES_URL = "/data/injuries.json";
+
+/** Loads the injury news feed. Throws so the page can show the failure. */
+export async function fetchInjuryNews(): Promise<InjuryNewsFile> {
+  const response = await fetch(INJURIES_URL);
+  if (!response.ok) {
+    throw new Error(`Failed to load injury news: ${response.status}`);
+  }
+  return response.json();
+}
