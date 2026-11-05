@@ -17,14 +17,6 @@ def load_player_weekly_stats(seasons: list[int], raw_data_dir: str = RAW_DATA_DI
     return _load_seasons_cached("player_stats", seasons, lambda: nfl.load_player_stats(seasons), raw_data_dir)
 
 
-def load_injuries(seasons: list[int], raw_data_dir: str = RAW_DATA_DIR) -> pl.DataFrame:
-    """
-    Load the official weekly injury reports (game status, practice status, injury),
-    snapshotting to raw_data_dir. One row per player per week.
-    """
-    return _load_seasons_cached("injuries", seasons, lambda: nfl.load_injuries(seasons), raw_data_dir)
-
-
 def load_players(raw_data_dir: str = RAW_DATA_DIR) -> pl.DataFrame:
     """
     Load player metadata, snapshotting to raw_data_dir.

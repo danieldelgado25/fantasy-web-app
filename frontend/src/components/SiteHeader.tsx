@@ -7,7 +7,7 @@ import { fetchProjections } from "@/lib/api";
 /** One tab: its page address and the label shown for it. */
 interface Tab {
   /** Route path the tab opens. Add a route here when it gets a tab. */
-  to: "/" | "/start-sit" | "/accuracy" | "/log";
+  to: "/" | "/start-sit" | "/injuries" | "/accuracy" | "/log";
   /** Text on the tab. */
   label: string;
 }
@@ -16,6 +16,7 @@ interface Tab {
 const TABS: Tab[] = [
   { to: "/", label: "Projections" },
   { to: "/start-sit", label: "Start/Sit" },
+  { to: "/injuries", label: "Injuries" },
   { to: "/accuracy", label: "Accuracy" },
   { to: "/log", label: "Log" },
 ];

@@ -45,6 +45,10 @@ jobs:
       - name: Score predictions against actual results
         working-directory: backend
         run: python evaluate.py
+      # Writes frontend/public/data/injuries.json, which the commit step below picks up.
+      - name: Update the injury news feed
+        working-directory: backend
+        run: python write_injury_news.py
       - name: Commit any changes
         run: |
           git config user.name "github-actions[bot]"
