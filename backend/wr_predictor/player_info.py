@@ -83,15 +83,13 @@ PRACTICE_LABELS = {
 }
 
 
-def add_injury_status(rows: pl.DataFrame, injuries: pl.DataFrame) -> pl.DataFrame:
+def injury_report_statuses(injuries: pl.DataFrame) -> pl.DataFrame:
     """
-    Add injury_status, the worst status for the game being projected, and injury_note,
-    its details (e.g. "Questionable · Did not practice · Hamstring"). Worst to best:
-    Out, Doubtful, DNP (did not practice, for an injury), Questionable. Limited or full practice with
-    no game status, or no report at all, leaves both null: healthy. IR isn't set here:
-    IR players are already off the site, dropped by the active roster filter.
-    Matched on the projected season and week, so an old report never carries over.
-    Display only, not a model input.
+    One row per injury report entry: player_id, season, week, injury_status, the worst
+    status, and injury_note, its details (e.g. "Questionable · Did not practice · Hamstring").
+    Worst to best: Out, Doubtful, DNP (did not practice, for an injury), Questionable.
+    Limited or full practice with no game status leaves both null: healthy.
+    Shared by the projections file and the injury news feed, so both judge a report alike.
     """
     report = injuries.select(
         pl.col("gsis_id").alias("player_id"),
@@ -118,11 +116,17 @@ def add_injury_status(rows: pl.DataFrame, injuries: pl.DataFrame) -> pl.DataFram
     flagged = report.with_columns(status.alias("injury_status")).with_columns(
         pl.when(pl.col("injury_status").is_not_null()).then(note).alias("injury_note")
     )
-    return rows.join(
-        flagged.select("player_id", "season", "week", "injury_status", "injury_note"),
-        on=["player_id", "season", "week"],
-        how="left",
-    )
+    return flagged.select("player_id", "season", "week", "injury_status", "injury_note")
+
+
+def add_injury_status(rows: pl.DataFrame, injuries: pl.DataFrame) -> pl.DataFrame:
+    """
+    Add injury_status and injury_note (see injury_report_statuses) for the game being
+    projected. No report means healthy: both null. IR isn't set here: IR players are
+    already off the site, dropped by the active roster filter. Matched on the projected
+    season and week, so an old report never carries over. Display only, not a model input.
+    """
+    return rows.join(injury_report_statuses(injuries), on=["player_id", "season", "week"], how="left")
 
 
 def player_profiles(players: pl.DataFrame) -> pl.DataFrame:
