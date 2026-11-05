@@ -75,6 +75,55 @@ def defense_vs_wr(stats: pl.DataFrame, season: int) -> pl.DataFrame:
         )
     )
 
+# Practice wording in the injury report, shortened for the site's note.
+PRACTICE_LABELS = {
+    "Did Not Participate In Practice": "Did not practice",
+    "Limited Participation in Practice": "Limited practice",
+    "Full Participation in Practice": "Full practice",
+}
+
+
+def add_injury_status(rows: pl.DataFrame, injuries: pl.DataFrame) -> pl.DataFrame:
+    """
+    Add injury_status, the worst status for the game being projected, and injury_note,
+    its details (e.g. "Questionable · Did not practice · Hamstring"). Worst to best:
+    Out, Doubtful, DNP (did not practice, for an injury), Questionable. Limited or full practice with
+    no game status, or no report at all, leaves both null: healthy. IR isn't set here:
+    IR players are already off the site, dropped by the active roster filter.
+    Matched on the projected season and week, so an old report never carries over.
+    Display only, not a model input.
+    """
+    report = injuries.select(
+        pl.col("gsis_id").alias("player_id"),
+        "season",
+        "week",
+        "report_status",
+        pl.col("practice_status").replace_strict(PRACTICE_LABELS, default=None).alias("practice"),
+        pl.coalesce("report_primary_injury", "practice_primary_injury").alias("injury"),
+    )
+    # The when-chain order is the worst-to-best order: the first match wins.
+    status = (
+        pl.when(pl.col("report_status").is_in(["Out", "Doubtful"]))
+        .then(pl.col("report_status"))
+        # A veteran rest day or personal reason isn't an injury, so it doesn't count as DNP.
+        .when(
+            (pl.col("practice") == PRACTICE_LABELS["Did Not Participate In Practice"])
+            & ~pl.col("injury").fill_null("").str.starts_with("Not injury related")
+        )
+        .then(pl.lit("DNP"))
+        .when(pl.col("report_status") == "Questionable")
+        .then(pl.lit("Questionable"))
+    )
+    note = pl.concat_str(["report_status", "practice", "injury"], separator=" · ", ignore_nulls=True)
+    flagged = report.with_columns(status.alias("injury_status")).with_columns(
+        pl.when(pl.col("injury_status").is_not_null()).then(note).alias("injury_note")
+    )
+    return rows.join(
+        flagged.select("player_id", "season", "week", "injury_status", "injury_note"),
+        on=["player_id", "season", "week"],
+        how="left",
+    )
+
 
 def player_profiles(players: pl.DataFrame) -> pl.DataFrame:
     """One row of bio details per player, from nflreadpy's player table."""
