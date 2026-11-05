@@ -31,6 +31,25 @@ export interface PlayerProjection {
   season_rec?: number | null;
   season_rec_yds?: number | null;
   season_rec_td?: number | null;
+  // The upcoming game as the model saw it (backend player_info.game_context). Optional like above.
+  /** 1 home, 0 away. */
+  is_home?: number | null;
+  /** 1 when played under a roof. */
+  is_dome?: number | null;
+  /** Betting total for the game. A neutral stand-in when line_posted is false. */
+  game_total?: number | null;
+  /** Points the betting line expects the player's team to score. */
+  team_implied_total?: number | null;
+  /** False until a real betting line exists for the game. */
+  line_posted?: boolean | null;
+  /** Kickoff date (YYYY-MM-DD) and time (HH:MM), US Eastern. */
+  gameday?: string | null;
+  gametime?: string | null;
+  // Display only, not a model input (backend player_info.defense_vs_wr).
+  /** WR PPR points the opponent allows per game this season. */
+  opp_wr_points_allowed?: number | null;
+  /** Opponent's rank by WR points allowed. 1 allows the most (easiest matchup). */
+  opp_wr_allowed_rank?: number | null;
 }
 
 /** The static file the daily job publishes. */
