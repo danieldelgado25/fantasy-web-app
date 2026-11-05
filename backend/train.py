@@ -24,7 +24,7 @@ from wr_predictor.model import (
     prepare_model_frame,
     train_stat_models,
 )
-from wr_predictor.player_info import add_player_info, defense_vs_wr, game_context
+from wr_predictor.player_info import add_injury_status, add_player_info, defense_vs_wr, game_context
 from wr_predictor.predictions import add_rank, build_log_rows, not_yet_kicked_off, season_points, upsert_log
 
 """
@@ -98,6 +98,7 @@ def main() -> None:
     # the prediction log keeps its columns.
     site_rows = build_log_rows(ranked).join(game_context(ranked), on="player_id", how="left")
     site_rows = site_rows.join(defense_vs_wr(stats, current_season), on="opponent_team", how="left")
+    site_rows = add_injury_status(site_rows, data_loader.load_injuries([current_season]))
     site_rows = add_player_info(site_rows, data_loader.load_players(), data_loader.load_teams(), stats, current_season)
     write_projections_file(site_rows, PROJECTIONS_PATH)
     print(f"Wrote {ranked.height} player projections to {PROJECTIONS_PATH}")

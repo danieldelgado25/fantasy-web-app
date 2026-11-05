@@ -6,6 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { InjuryIcon } from "@/components/InjuryIcon";
 import type { PlayerProjection } from "@/lib/api";
 
 interface TopPlayersTableProps {
@@ -44,7 +45,8 @@ export function TopPlayersTable({ players, selectedPlayerId, onSelect }: TopPlay
                 onClick={() => onSelect(player)}
               >
                 {player.player_name}
-              </button>
+              </button>{" "}
+              <InjuryIcon status={player.injury_status} note={player.injury_note} />
               <span className="text-muted-foreground ml-2 inline-flex items-center gap-1 align-middle text-xs">
                 {player.team_logo_url && (
                   <img src={player.team_logo_url} alt="" className="h-4 w-4" />

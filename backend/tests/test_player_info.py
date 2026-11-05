@@ -1,6 +1,6 @@
 import polars as pl
 
-from wr_predictor.player_info import add_player_info, defense_vs_wr, game_context
+from wr_predictor.player_info import add_injury_status, add_player_info, defense_vs_wr, game_context
 from wr_predictor.stats import NEUTRAL_TOTAL_LINE
 
 """
@@ -103,3 +103,34 @@ def test_defense_vs_wr_averages_per_game_and_ranks_most_allowed_first() -> None:
     assert result["opp_wr_points_allowed"].to_list() == [20.0, 25.0]
     # NYG allows more, so it ranks 1st (the easier matchup).
     assert result["opp_wr_allowed_rank"].to_list() == [2, 1]
+
+
+def test_add_injury_status_picks_worst_status_for_the_projected_week() -> None:
+    dnp, limited, full = "Did Not Participate In Practice", "Limited Participation in Practice", "Full Participation in Practice"
+    # One player per case, all projected for 2026 week 9.
+    rows = pl.DataFrame(
+        {"player_id": ["OUT", "DNPQ", "Q", "LIM", "OLD", "NONE", "REST"], "season": [2026] * 7, "week": [9] * 7}
+    )
+    injuries = pl.DataFrame(
+        {
+            "gsis_id": ["OUT", "DNPQ", "Q", "LIM", "OLD", "REST"],
+            "season": [2026] * 6,
+            # OLD's report is from last week, so it must not carry over.
+            "week": [9, 9, 9, 9, 8, 9],
+            "report_status": ["Out", "Questionable", "Questionable", None, "Out", None],
+            "practice_status": [dnp, dnp, full, limited, dnp, dnp],
+            "report_primary_injury": ["Knee", "Hamstring", "Ankle", None, "Knee", None],
+            "practice_primary_injury": ["Knee", "Hamstring", "Ankle", "Toe", "Knee", "Not injury related - resting player"],
+        }
+    )
+
+    result = add_injury_status(rows, injuries).sort("player_id")
+    by_player = dict(zip(result["player_id"], result["injury_status"]))
+
+    # Out beats DNP; DNP beats Questionable; Limited, a rest day and no report are healthy.
+    assert by_player == {
+        "DNPQ": "DNP", "LIM": None, "NONE": None, "OLD": None, "OUT": "Out", "Q": "Questionable", "REST": None
+    }
+    notes = dict(zip(result["player_id"], result["injury_note"]))
+    assert notes["DNPQ"] == "Questionable · Did not practice · Hamstring"
+    assert notes["LIM"] is None
