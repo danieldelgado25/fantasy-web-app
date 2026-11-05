@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { InjuryIcon } from "@/components/InjuryIcon";
-import type { PlayerProjection } from "@/lib/api";
+import type { InjuryStatus, PlayerProjection } from "@/lib/api";
 
 /**
  * Projected point gaps smaller than this are called a toss-up. The model's average
@@ -55,12 +55,43 @@ function defenseValue(p: PlayerProjection): string {
   return `${p.opp_wr_points_allowed.toFixed(1)} / game (${p.opp_wr_allowed_rank} of ${DEFENSE_COUNT})`;
 }
 
+/** Statuses that mean the player won't play this game, so projected points don't matter. */
+const WONT_PLAY: InjuryStatus[] = ["IR", "Out"];
+
+/** True when the injury report says the player won't play. */
+function wontPlay(p: PlayerProjection): boolean {
+  return p.injury_status != null && WONT_PLAY.includes(p.injury_status);
+}
+
+/**
+ * The verdict and the one-line reason under it. A player who won't play loses
+ * regardless of points; otherwise the higher projection wins unless the gap is a toss-up.
+ */
+function decide(a: PlayerProjection, b: PlayerProjection): { verdict: string; reason: string } {
+  if (wontPlay(a) && wontPlay(b)) {
+    return { verdict: "Neither will play", reason: "Both are ruled out or on injured reserve." };
+  }
+  if (wontPlay(a) || wontPlay(b)) {
+    const [out, other] = wontPlay(a) ? [a, b] : [b, a];
+    return { verdict: `Start ${other.player_name}`, reason: `${out.player_name} won't play.` };
+  }
+  const gap = a.pred_ppr_points - b.pred_ppr_points;
+  if (Math.abs(gap) < TOSS_UP_MARGIN) {
+    return {
+      verdict: "Toss-up",
+      reason: `Projections are within ${TOSS_UP_MARGIN} points, smaller than the model's typical miss.`,
+    };
+  }
+  const leader = gap >= 0 ? a : b;
+  return {
+    verdict: `Start ${leader.player_name}`,
+    reason: `Projected ${Math.abs(gap).toFixed(1)} more PPR points.`,
+  };
+}
+
 /** Side-by-side projection and matchup for two WRs, with a start/sit verdict. */
 export function StartSitCompare({ a, b }: StartSitCompareProps) {
-  const gap = a.pred_ppr_points - b.pred_ppr_points;
-  const isTossUp = Math.abs(gap) < TOSS_UP_MARGIN;
-  const leader = gap >= 0 ? a : b;
-  const verdict = isTossUp ? "Toss-up" : `Start ${leader.player_name}`;
+  const { verdict, reason } = decide(a, b);
 
   // One row per comparison line: label, then each player's value.
   const rows: { label: string; value: (p: PlayerProjection) => string }[] = [
@@ -82,11 +113,7 @@ export function StartSitCompare({ a, b }: StartSitCompareProps) {
     <Card>
       <CardHeader>
         <CardTitle>{verdict}</CardTitle>
-        <p className="text-muted-foreground text-sm">
-          {isTossUp
-            ? `Projections are within ${TOSS_UP_MARGIN} points, smaller than the model's typical miss.`
-            : `Projected ${Math.abs(gap).toFixed(1)} more PPR points.`}
-        </p>
+        <p className="text-muted-foreground text-sm">{reason}</p>
       </CardHeader>
       <CardContent className="space-y-3">
         <Table>
