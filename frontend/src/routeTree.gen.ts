@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccuracyRouteImport } from './routes/accuracy'
+import { Route as InjuriesRouteImport } from './routes/injuries'
 import { Route as LogRouteImport } from './routes/log'
 import { Route as StartSitRouteImport } from './routes/start-sit'
 
@@ -22,6 +23,11 @@ const IndexRoute = IndexRouteImport.update({
 const AccuracyRoute = AccuracyRouteImport.update({
   id: '/accuracy',
   path: '/accuracy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InjuriesRoute = InjuriesRouteImport.update({
+  id: '/injuries',
+  path: '/injuries',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LogRoute = LogRouteImport.update({
@@ -38,12 +44,14 @@ const StartSitRoute = StartSitRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accuracy': typeof AccuracyRoute
+  '/injuries': typeof InjuriesRoute
   '/log': typeof LogRoute
   '/start-sit': typeof StartSitRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accuracy': typeof AccuracyRoute
+  '/injuries': typeof InjuriesRoute
   '/log': typeof LogRoute
   '/start-sit': typeof StartSitRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/accuracy': typeof AccuracyRoute
+  '/injuries': typeof InjuriesRoute
   '/log': typeof LogRoute
   '/start-sit': typeof StartSitRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/accuracy' | '/log' | '/start-sit'
+  fullPaths: '/' | '/accuracy' | '/injuries' | '/log' | '/start-sit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/accuracy' | '/log' | '/start-sit'
-  id: '__root__' | '/' | '/accuracy' | '/log' | '/start-sit'
+  to: '/' | '/accuracy' | '/injuries' | '/log' | '/start-sit'
+  id: '__root__' | '/' | '/accuracy' | '/injuries' | '/log' | '/start-sit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccuracyRoute: typeof AccuracyRoute
+  InjuriesRoute: typeof InjuriesRoute
   LogRoute: typeof LogRoute
   StartSitRoute: typeof StartSitRoute
 }
@@ -83,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/accuracy'
       fullPath: '/accuracy'
       preLoaderRoute: typeof AccuracyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/injuries': {
+      id: '/injuries'
+      path: '/injuries'
+      fullPath: '/injuries'
+      preLoaderRoute: typeof InjuriesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/log': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccuracyRoute: AccuracyRoute,
+  InjuriesRoute: InjuriesRoute,
   LogRoute: LogRoute,
   StartSitRoute: StartSitRoute,
 }
