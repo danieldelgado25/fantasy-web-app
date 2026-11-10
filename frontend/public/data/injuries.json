@@ -1,11 +1,47 @@
 {
- "generated_at": "2026-11-09T18:49:04+00:00",
+ "generated_at": "2026-11-10T16:25:13+00:00",
  "players": [
+  {
+   "player_id": "00-0039739",
+   "player_name": "Roman Wilson",
+   "team": "PIT",
+   "week": 10,
+   "injury_status": "IR",
+   "injury_note": "On a reserve list (IR, PUP or similar)",
+   "first_seen": "2026-11-10T16:25:13+00:00"
+  },
+  {
+   "player_id": "00-0039626",
+   "player_name": "Cole Burgess",
+   "team": "PIT",
+   "week": 10,
+   "injury_status": "IR",
+   "injury_note": "On a reserve list (IR, PUP or similar)",
+   "first_seen": "2026-11-10T16:25:13+00:00"
+  },
+  {
+   "player_id": "00-0036252",
+   "player_name": "Michael Pittman",
+   "team": "PIT",
+   "week": 10,
+   "injury_status": "IR",
+   "injury_note": "On a reserve list (IR, PUP or similar)",
+   "first_seen": "2026-11-10T16:25:13+00:00"
+  },
+  {
+   "player_id": "00-0036988",
+   "player_name": "Josh Palmer",
+   "team": "BUF",
+   "week": 10,
+   "injury_status": "IR",
+   "injury_note": "On a reserve list (IR, PUP or similar)",
+   "first_seen": "2026-11-10T16:25:13+00:00"
+  },
   {
    "player_id": "00-0034775",
    "player_name": "Christian Kirk",
    "team": "SF",
-   "week": 9,
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-09T18:49:04+00:00"
@@ -14,7 +50,7 @@
    "player_id": "00-0036626",
    "player_name": "Dyami Brown",
    "team": "WAS",
-   "week": 9,
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-09T18:49:04+00:00"
@@ -56,15 +92,6 @@
    "first_seen": "2026-11-09T18:49:04+00:00"
   },
   {
-   "player_id": "00-0036988",
-   "player_name": "Josh Palmer",
-   "team": "BUF",
-   "week": 9,
-   "injury_status": "Out",
-   "injury_note": "Out \u00b7 Did not practice \u00b7 Hamstring",
-   "first_seen": "2026-11-08T15:12:28+00:00"
-  },
-  {
    "player_id": "00-0036259",
    "player_name": "Jauan Jennings",
    "team": "MIN",
@@ -92,24 +119,6 @@
    "first_seen": "2026-11-07T14:55:02+00:00"
   },
   {
-   "player_id": "00-0038393",
-   "player_name": "Dontayvion Wicks",
-   "team": "PHI",
-   "week": 9,
-   "injury_status": "Out",
-   "injury_note": "Out \u00b7 Did not practice \u00b7 Ankle",
-   "first_seen": "2026-11-07T14:55:02+00:00"
-  },
-  {
-   "player_id": "00-0037132",
-   "player_name": "Britain Covey",
-   "team": "PHI",
-   "week": 9,
-   "injury_status": "Out",
-   "injury_note": "Out \u00b7 Did not practice \u00b7 Knee",
-   "first_seen": "2026-11-07T14:55:02+00:00"
-  },
-  {
    "player_id": "00-0036912",
    "player_name": "DeVonta Smith",
    "team": "PHI",
@@ -128,9 +137,27 @@
    "first_seen": "2026-11-07T14:55:02+00:00"
   },
   {
+   "player_id": "00-0037132",
+   "player_name": "Britain Covey",
+   "team": "PHI",
+   "week": 9,
+   "injury_status": "Out",
+   "injury_note": "Out \u00b7 Did not practice \u00b7 Knee",
+   "first_seen": "2026-11-07T14:55:02+00:00"
+  },
+  {
    "player_id": "00-0035676",
    "player_name": "A.J. Brown",
    "team": "NE",
+   "week": 9,
+   "injury_status": "Out",
+   "injury_note": "Out \u00b7 Did not practice \u00b7 Ankle",
+   "first_seen": "2026-11-07T14:55:02+00:00"
+  },
+  {
+   "player_id": "00-0038393",
+   "player_name": "Dontayvion Wicks",
+   "team": "PHI",
    "week": 9,
    "injury_status": "Out",
    "injury_note": "Out \u00b7 Did not practice \u00b7 Ankle",
@@ -227,15 +254,6 @@
    "first_seen": "2026-11-07T14:55:02+00:00"
   },
   {
-   "player_id": "00-0037247",
-   "player_name": "George Pickens",
-   "team": "DAL",
-   "week": 9,
-   "injury_status": "Questionable",
-   "injury_note": "Questionable \u00b7 Limited practice \u00b7 Hamstring",
-   "first_seen": "2026-11-07T14:55:02+00:00"
-  },
-  {
    "player_id": "00-0040129",
    "player_name": "Emeka Egbuka",
    "team": "TB",
@@ -245,19 +263,19 @@
    "first_seen": "2026-11-07T14:55:02+00:00"
   },
   {
-   "player_id": "00-0038619",
-   "player_name": "Andrei Iosivas",
-   "team": "CIN",
+   "player_id": "00-0037247",
+   "player_name": "George Pickens",
+   "team": "DAL",
    "week": 9,
-   "injury_status": "IR",
-   "injury_note": "On a reserve list (IR, PUP or similar)",
-   "first_seen": "2026-11-05T20:01:37+00:00"
+   "injury_status": "Questionable",
+   "injury_note": "Questionable \u00b7 Limited practice \u00b7 Hamstring",
+   "first_seen": "2026-11-07T14:55:02+00:00"
   },
   {
-   "player_id": "00-0039236",
-   "player_name": "Johnny Wilson",
-   "team": "PHI",
-   "week": 9,
+   "player_id": "00-0038090",
+   "player_name": "Skyy Moore",
+   "team": "GB",
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
@@ -266,7 +284,7 @@
    "player_id": "00-0040953",
    "player_name": "Jeff Caldwell",
    "team": "KC",
-   "week": 9,
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
@@ -275,7 +293,7 @@
    "player_id": "00-0041035",
    "player_name": "De'Zhaun Stribling",
    "team": "SF",
-   "week": 9,
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
@@ -284,7 +302,7 @@
    "player_id": "00-0041047",
    "player_name": "Chris Brazzell II",
    "team": "CAR",
-   "week": 9,
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
@@ -293,88 +311,7 @@
    "player_id": "00-0041446",
    "player_name": "Kendrick Law",
    "team": "DET",
-   "week": 9,
-   "injury_status": "IR",
-   "injury_note": "On a reserve list (IR, PUP or similar)",
-   "first_seen": "2026-11-05T20:01:37+00:00"
-  },
-  {
-   "player_id": "00-0033307",
-   "player_name": "Kendrick Bourne",
-   "team": "ARI",
-   "week": 9,
-   "injury_status": "IR",
-   "injury_note": "On a reserve list (IR, PUP or similar)",
-   "first_seen": "2026-11-05T20:01:37+00:00"
-  },
-  {
-   "player_id": "00-0040164",
-   "player_name": "Jaylin Lane",
-   "team": "WAS",
-   "week": 9,
-   "injury_status": "IR",
-   "injury_note": "On a reserve list (IR, PUP or similar)",
-   "first_seen": "2026-11-05T20:01:37+00:00"
-  },
-  {
-   "player_id": "00-0040138",
-   "player_name": "Jaylin Noel",
-   "team": "HOU",
-   "week": 9,
-   "injury_status": "IR",
-   "injury_note": "On a reserve list (IR, PUP or similar)",
-   "first_seen": "2026-11-05T20:01:37+00:00"
-  },
-  {
-   "player_id": "00-0040130",
-   "player_name": "Jayden Higgins",
-   "team": "HOU",
-   "week": 9,
-   "injury_status": "IR",
-   "injury_note": "On a reserve list (IR, PUP or similar)",
-   "first_seen": "2026-11-05T20:01:37+00:00"
-  },
-  {
-   "player_id": "00-0040120",
-   "player_name": "Jimmy Holiday",
-   "team": "KC",
-   "week": 9,
-   "injury_status": "IR",
-   "injury_note": "On a reserve list (IR, PUP or similar)",
-   "first_seen": "2026-11-05T20:01:37+00:00"
-  },
-  {
-   "player_id": "00-0039916",
-   "player_name": "Ricky Pearsall",
-   "team": "SF",
-   "week": 9,
-   "injury_status": "IR",
-   "injury_note": "On a reserve list (IR, PUP or similar)",
-   "first_seen": "2026-11-05T20:01:37+00:00"
-  },
-  {
-   "player_id": "00-0039855",
-   "player_name": "Jalen McMillan",
-   "team": "TB",
-   "week": 9,
-   "injury_status": "IR",
-   "injury_note": "On a reserve list (IR, PUP or similar)",
-   "first_seen": "2026-11-05T20:01:37+00:00"
-  },
-  {
-   "player_id": "00-0039623",
-   "player_name": "Mason Tipton",
-   "team": "NO",
-   "week": 9,
-   "injury_status": "IR",
-   "injury_note": "On a reserve list (IR, PUP or similar)",
-   "first_seen": "2026-11-05T20:01:37+00:00"
-  },
-  {
-   "player_id": "00-0039342",
-   "player_name": "Xavier Legette",
-   "team": "CAR",
-   "week": 9,
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
@@ -383,7 +320,79 @@
    "player_id": "00-0040582",
    "player_name": "Arian Smith",
    "team": "NYJ",
-   "week": 9,
+   "week": 10,
+   "injury_status": "IR",
+   "injury_note": "On a reserve list (IR, PUP or similar)",
+   "first_seen": "2026-11-05T20:01:37+00:00"
+  },
+  {
+   "player_id": "00-0033307",
+   "player_name": "Kendrick Bourne",
+   "team": "ARI",
+   "week": 10,
+   "injury_status": "IR",
+   "injury_note": "On a reserve list (IR, PUP or similar)",
+   "first_seen": "2026-11-05T20:01:37+00:00"
+  },
+  {
+   "player_id": "00-0040164",
+   "player_name": "Jaylin Lane",
+   "team": "WAS",
+   "week": 10,
+   "injury_status": "IR",
+   "injury_note": "On a reserve list (IR, PUP or similar)",
+   "first_seen": "2026-11-05T20:01:37+00:00"
+  },
+  {
+   "player_id": "00-0040138",
+   "player_name": "Jaylin Noel",
+   "team": "HOU",
+   "week": 10,
+   "injury_status": "IR",
+   "injury_note": "On a reserve list (IR, PUP or similar)",
+   "first_seen": "2026-11-05T20:01:37+00:00"
+  },
+  {
+   "player_id": "00-0040130",
+   "player_name": "Jayden Higgins",
+   "team": "HOU",
+   "week": 10,
+   "injury_status": "IR",
+   "injury_note": "On a reserve list (IR, PUP or similar)",
+   "first_seen": "2026-11-05T20:01:37+00:00"
+  },
+  {
+   "player_id": "00-0040120",
+   "player_name": "Jimmy Holiday",
+   "team": "KC",
+   "week": 10,
+   "injury_status": "IR",
+   "injury_note": "On a reserve list (IR, PUP or similar)",
+   "first_seen": "2026-11-05T20:01:37+00:00"
+  },
+  {
+   "player_id": "00-0039916",
+   "player_name": "Ricky Pearsall",
+   "team": "SF",
+   "week": 10,
+   "injury_status": "IR",
+   "injury_note": "On a reserve list (IR, PUP or similar)",
+   "first_seen": "2026-11-05T20:01:37+00:00"
+  },
+  {
+   "player_id": "00-0039623",
+   "player_name": "Mason Tipton",
+   "team": "NO",
+   "week": 10,
+   "injury_status": "IR",
+   "injury_note": "On a reserve list (IR, PUP or similar)",
+   "first_seen": "2026-11-05T20:01:37+00:00"
+  },
+  {
+   "player_id": "00-0039342",
+   "player_name": "Xavier Legette",
+   "team": "CAR",
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
@@ -392,7 +401,7 @@
    "player_id": "00-0039146",
    "player_name": "Jayden Reed",
    "team": "GB",
-   "week": 9,
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
@@ -401,7 +410,7 @@
    "player_id": "00-0038752",
    "player_name": "Jake Bobo",
    "team": "SEA",
-   "week": 9,
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
@@ -410,7 +419,7 @@
    "player_id": "00-0038679",
    "player_name": "Tyrell Shavers",
    "team": "BUF",
-   "week": 9,
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
@@ -419,16 +428,16 @@
    "player_id": "00-0038640",
    "player_name": "Jalen Brooks",
    "team": "ARI",
-   "week": 9,
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
   },
   {
-   "player_id": "00-0031381",
-   "player_name": "Davante Adams",
-   "team": "LA",
-   "week": 9,
+   "player_id": "00-0038619",
+   "player_name": "Andrei Iosivas",
+   "team": "CIN",
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
@@ -437,16 +446,16 @@
    "player_id": "00-0038104",
    "player_name": "Tyquan Thornton",
    "team": "KC",
-   "week": 9,
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
   },
   {
-   "player_id": "00-0038090",
-   "player_name": "Skyy Moore",
-   "team": "GB",
-   "week": 9,
+   "player_id": "00-0031381",
+   "player_name": "Davante Adams",
+   "team": "LA",
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
@@ -455,7 +464,7 @@
    "player_id": "00-0037837",
    "player_name": "Calvin Austin III",
    "team": "NYG",
-   "week": 9,
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
@@ -464,7 +473,7 @@
    "player_id": "00-0037816",
    "player_name": "Romeo Doubs",
    "team": "NE",
-   "week": 9,
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
@@ -473,7 +482,7 @@
    "player_id": "00-0037664",
    "player_name": "Alec Pierce",
    "team": "IND",
-   "week": 9,
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
@@ -482,7 +491,7 @@
    "player_id": "00-0035659",
    "player_name": "Terry McLaurin",
    "team": "WAS",
-   "week": 9,
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
@@ -491,7 +500,7 @@
    "player_id": "00-0035645",
    "player_name": "Gunner Olszewski",
    "team": "NYG",
-   "week": 9,
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
@@ -500,7 +509,7 @@
    "player_id": "00-0035544",
    "player_name": "Tom Kennedy",
    "team": "DET",
-   "week": 9,
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
@@ -509,7 +518,7 @@
    "player_id": "00-0035045",
    "player_name": "D.J. Montgomery",
    "team": "IND",
-   "week": 9,
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
@@ -518,7 +527,7 @@
    "player_id": "00-0034419",
    "player_name": "Braxton Berrios",
    "team": "NYG",
-   "week": 9,
+   "week": 10,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"

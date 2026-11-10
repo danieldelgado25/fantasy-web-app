@@ -8,7 +8,8 @@
     5,
     6,
     7,
-    8
+    8,
+    9
   ],
   "live": {
     "scores": [
@@ -46,7 +47,7 @@
     ],
     "gate": {
       "passed": false,
-      "reason": "needs 4 finished weeks, has 0"
+      "reason": "needs 4 finished weeks, has 1"
     }
   },
   "replay": {
