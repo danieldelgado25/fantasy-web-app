@@ -20,9 +20,9 @@ Check items off as they land. The site is mainly for recruiters and interviewers
 ### Phase 3: Start live logging (deadline: before the Nov 5 kickoff)
 - [x] Push `deploy-readiness`
 - [x] Merge it to `main`
-- [ ] Wait for the first scheduled run at 10:00 UTC on Nov 3, or start it from the GitHub Actions tab
-- [ ] Confirm its commit updated `backend/predictions/2026.csv` and `projections.json`
-- [ ] Confirm the next scheduled daily run works
+- [x] Run the daily job for the first time (the Nov 3 scheduled run never fired, so it was started by hand)
+- [x] Confirm its commit updated `backend/predictions/2026.csv` and `projections.json`
+- [x] Confirm the next scheduled daily run works (runs land daily, but GitHub often starts them hours late)
 
 Done when: week 9 predictions are on GitHub before kickoff and the daily job runs unattended.
 
@@ -72,8 +72,8 @@ Findings so far, walking forward through 2023-2025 (54 weeks) for each week's to
 - [x] Fix the critical TanStack Start flaw Vercel blocked, scan git history for secrets and update flagged build tools
 - [x] Add a public project log of adjustments and re-evaluations
 - [ ] Add a project log entry whenever the model, its evaluation or the site changes in a way worth explaining
-- [ ] Confirm the daily job's commit triggers a Vercel rebuild
-- [ ] Test the preview on desktop and phone
+- [x] Confirm the daily job's commit triggers a Vercel rebuild
+- [x] Test the preview on desktop and phone
 - [x] Add a short note to the site saying what the numbers are and when they were updated
 - [x] Show accuracy on the site, with live results and replays kept separate
 - [x] Remove the deprecated files flagged for manual removal
@@ -82,10 +82,10 @@ Done when: a preview URL shows current data without any manual steps.
 
 ### Phase 7: Public launch
 - [x] Make a first production deployment, by updating the `production` branch to `main`
-- [ ] Point Vercel's production branch back to `main`, so each daily job commit publishes fresh data automatically, then flag the `production` branch for removal
+- [x] Point Vercel's production branch back to `main`, so each daily job commit publishes fresh data automatically, then flag the `production` branch for removal
 - [x] Confirm the production URL opens without a login: https://wr-projections.vercel.app
 - [ ] Share the link and confirm it works without cloning anything
-- [ ] Watch the first week of unattended refreshes
+- [x] Watch the first week of unattended refreshes (Nov 6-12: one data commit each day)
 
 Done when: anyone can open the link and see this week's projections.
 
