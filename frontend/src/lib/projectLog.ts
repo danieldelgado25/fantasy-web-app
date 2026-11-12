@@ -20,6 +20,27 @@ export const REPOSITORY_URL = "https://github.com/danieldelgado25/fantasy-web-ap
  */
 export const PROJECT_LOG: ProjectLogEntry[] = [
   {
+    date: "2026-11-10",
+    title: "Scored the first live week",
+    why: "Week 9 is the first week predicted before kickoff and saved publicly, so it's the first result the model couldn't have been tuned to.",
+    result:
+      "For the top 20 receivers (18 played), MAE was 7.36 against 8.31 for the last-3-games baseline, and ranking was 0.45 against 0.11. One week isn't a verdict: the passing bar needs four finished live weeks.",
+  },
+  {
+    date: "2026-11-05",
+    title: "Added injury status and an Injuries tab",
+    why: "A projection is misleading if the player is ruled out, and the official injury report is public before each game.",
+    result:
+      "Each receiver shows their status from the official weekly report, and the Start/Sit card never recommends a player who is out. Injury status is display only: as a model input, it showed nothing reliable in testing.",
+  },
+  {
+    date: "2026-11-04",
+    title: "Added a Start/Sit comparison and split the site into tabs",
+    why: "Comparing two receivers is the most common fantasy question, and one long page buried the accuracy results.",
+    result:
+      "The site now has Projections, Start/Sit, Accuracy and Log tabs. Start/Sit shows each player's projection with game context and how many points the opposing defense allows to receivers. That defense figure is display only, because it didn't help the model.",
+  },
+  {
     date: "2026-11-03",
     title: "Made the prediction freeze an enforced rule",
     why: "That predictions are saved before kickoff was only checkable by reading git history.",
