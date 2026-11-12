@@ -17,7 +17,9 @@ Fantasy football is noisy, so the goal isn't a perfect forecast. It's a reproduc
 
 Other MAE figures in the project log cover different players or seasons and say so. For example, MAE across every WR game is lower, around 4.7, because it includes low-usage receivers who are easy to predict.
 
-These numbers are a test of the method, not proof. The real test is predictions saved before kickoff, starting with week 9 of 2026, in [`backend/predictions/`](backend/predictions/). A week's predictions freeze at kickoff, and the git history shows when each was made. [`check_freeze.py`](backend/check_freeze.py) enforces this: CI and the daily job fail if any commit added, edited or removed a prediction for a game that had already started.
+These numbers are a test of the method, not proof. The real test is predictions saved before kickoff, starting with week 9 of 2026, in [`backend/predictions/`](backend/predictions/).
+
+**First live week (week 9 of 2026):** for the 20 receivers predicted before kickoff (18 played), the model missed by 7.36 points on average, against 8.31 for the last-3-games average, and ranked players at 0.45 against 0.11. One week is too few to judge. The verdict needs four finished live weeks, and the site's Accuracy tab updates as each one is scored. A week's predictions freeze at kickoff, and the git history shows when each was made. [`check_freeze.py`](backend/check_freeze.py) enforces this: CI and the daily job fail if any commit added, edited or removed a prediction for a game that had already started.
 
 ## How it works
 
