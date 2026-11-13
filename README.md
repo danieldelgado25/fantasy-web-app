@@ -21,6 +21,17 @@ These numbers are a test of the method, not proof. The real test is predictions 
 
 **First live week (week 9 of 2026):** for the 20 receivers predicted before kickoff (18 played), the model missed by 7.36 points on average, against 8.31 for the last-3-games average, and ranked players at 0.45 against 0.11. One week is too few to judge. The verdict needs four finished live weeks, and the site's Accuracy tab updates as each one is scored. A week's predictions freeze at kickoff, and the git history shows when each was made. [`check_freeze.py`](backend/check_freeze.py) enforces this: CI and the daily job fail if any commit added, edited or removed a prediction for a game that had already started.
 
+## Power BI dashboard
+
+[![Power BI dashboard of model accuracy and receiver reliability](docs/powerbi/dashboard.png)](docs/powerbi/wr_accuracy.pbix)
+
+Built in Power BI Desktop from CSVs written by [`export_powerbi.py`](backend/export_powerbi.py). Click the image to download the [`.pbix`](docs/powerbi/wr_accuracy.pbix) (opens in Power BI Desktop).
+
+- **Model error vs baseline by week:** the model's average miss was lower than the last-3-games baseline in every week from 2 to 9, with week 8 close to a tie. Weeks 2-8 are replays; week 9 is the first live week.
+- **Biggest average misses:** the largest average misses belong to high-scoring receivers such as CeeDee Lamb and Ja'Marr Chase, whose points swing more from week to week, rather than to low-usage ones.
+- **Game tiers for graded WRs:** this season's tier spread (Dud 9%, Low 22%, Solid 22%, Strong 19%, Boom 20%, NUCLEAR 8%) matches the 2023-2025 data the tiers were set from, so the cutoffs hold up on new games.
+- **Boom vs dud rate:** the grade measures a floor (games at 10+), the scatter shows the ceiling. A receiver can avoid duds and still grade F by living at 5-10 points.
+
 ## How it works
 
 ```
@@ -72,9 +83,11 @@ backend/
   wr_predictor/   pipeline: data loading, features, targets, models, prediction scoring
   train.py        trains the models and writes projections and the prediction log
   evaluate.py     scores predictions and writes accuracy results
+  export_powerbi.py  flattens the site's data into CSVs for Power BI
   predictions/    prediction logs, review tables and reports
   tests/          unit tests
 frontend/         React site, reading its data from public/data/
+docs/powerbi/     Power BI dashboard (.pbix) and its screenshot
 notebooks/        data exploration
 ```
 
