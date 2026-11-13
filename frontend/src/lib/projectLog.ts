@@ -20,6 +20,13 @@ export const REPOSITORY_URL = "https://github.com/danieldelgado25/fantasy-web-ap
  */
 export const PROJECT_LOG: ProjectLogEntry[] = [
   {
+    date: "2026-11-13",
+    title: "Added each player's prediction history",
+    why: "Season-level accuracy covers only the top 20 each week, so there was no way to see how the model has done for one particular receiver.",
+    result:
+      "Picking a player now shows each finished week's projected and actual PPR points and the difference. Weeks 2-8 are tagged Replay, because they were re-run afterwards using only earlier games; from week 9 on, every row was saved before kickoff. It updates with the daily job.",
+  },
+  {
     date: "2026-11-10",
     title: "Scored the first live week",
     why: "Week 9 is the first week predicted before kickoff and saved publicly, so it's the first result the model couldn't have been tuned to.",
