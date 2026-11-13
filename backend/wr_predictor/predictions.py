@@ -35,6 +35,19 @@ LOG_KEY = ["season", "week", "player_id"]
 # Seasons not listed start at week 1.
 FIRST_LIVE_WEEK = {2026: 9}
 
+# A game's PPR tier, as (lowest points, name), highest first; under 5 points is a "Dud".
+# Share of games for fantasy-relevant WRs (each season's top 36 by points per game, 8+ games),
+# 2023-2025: Dud 10%, Low 22%, Solid 22%, Strong 20%, Boom 20%, NUCLEAR 5.5%.
+GAME_TIERS = [(30.0, "NUCLEAR"), (20.0, "Boom"), (15.0, "Strong"), (10.0, "Solid"), (5.0, "Low")]
+
+
+def game_tier(points: pl.Expr) -> pl.Expr:
+    """Each game's tier name from its PPR points. Null points (didn't play) give a null tier."""
+    tier = pl.when(points.is_null()).then(None)
+    for floor, name in GAME_TIERS:
+        tier = tier.when(points >= floor).then(pl.lit(name))
+    return tier.otherwise(pl.lit("Dud"))
+
 
 def live_weeks_only(log: pl.DataFrame, season: int) -> pl.DataFrame:
     """Drop logged weeks before live tracking fully began, so they're never scored or shown."""
@@ -177,6 +190,7 @@ def build_player_history(
             pl.col(POINTS_STAT).round(2).alias("actual"),
             # Positive means the player beat the projection, matching the review table.
             (pl.col(POINTS_STAT) - pl.col(f"pred_{POINTS_STAT}")).round(2).alias("diff"),
+            game_tier(pl.col(POINTS_STAT)).alias("tier"),
             "replay",
         )
     )

@@ -230,8 +230,16 @@ def test_build_player_history_prefers_live_flags_replay_and_keeps_missed_games()
     # Week 8 uses live, not the replay's 99; week 9 has no actual because A didn't play; week 10 isn't finished.
     assert history == {
         "A": [
-            {"week": 7, "projected": 10.0, "actual": 12.5, "diff": 2.5, "replay": True},
-            {"week": 8, "projected": 20.0, "actual": 18.0, "diff": -2.0, "replay": False},
-            {"week": 9, "projected": 15.0, "actual": None, "diff": None, "replay": False},
+            {"week": 7, "projected": 10.0, "actual": 12.5, "diff": 2.5, "tier": "Solid", "replay": True},
+            {"week": 8, "projected": 20.0, "actual": 18.0, "diff": -2.0, "tier": "Strong", "replay": False},
+            {"week": 9, "projected": 15.0, "actual": None, "diff": None, "tier": None, "replay": False},
         ]
     }
+
+
+def test_game_tier_uses_each_floor_inclusively_and_skips_missed_games() -> None:
+    points = pl.DataFrame({"p": [None, 0.0, 4.99, 5.0, 10.0, 15.0, 20.0, 30.0, 45.0]})
+
+    tiers = points.select(predictions.game_tier(pl.col("p")).alias("tier"))["tier"].to_list()
+
+    assert tiers == [None, "Dud", "Dud", "Low", "Solid", "Strong", "Boom", "NUCLEAR", "NUCLEAR"]
