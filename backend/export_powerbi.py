@@ -5,6 +5,8 @@ import os
 
 import polars as pl
 
+from wr_predictor.predictions import GAME_TIERS
+
 """
 Flattens the site's published data into CSVs for a Power BI accuracy dashboard.
 Run from backend/ after evaluate.py: python export_powerbi.py
@@ -16,6 +18,9 @@ DATA_DIR = "../frontend/public/data"
 
 # Where the CSVs go. Gitignored, since they can be regenerated at any time.
 EXPORT_DIR = "exports"
+
+# Tier names worst to best (Dud, Low, ... NUCLEAR) mapped to 0-5, for Power BI's "Sort by column".
+TIER_ORDER = {name: i for i, name in enumerate(["Dud", *[name for _, name in reversed(GAME_TIERS)]])}
 
 
 def load(name: str) -> dict:
@@ -36,7 +41,10 @@ def main() -> None:
     weeks = pl.DataFrame(
         [{"player_id": pid, **week} for pid, rows in history["players"].items() for week in rows],
         infer_schema_length=None,
-    ).with_columns((pl.col("actual") - pl.col("projected")).abs().round(2).alias("abs_error"))
+    ).with_columns(
+        (pl.col("actual") - pl.col("projected")).abs().round(2).alias("abs_error"),
+        pl.col("tier").replace_strict(TIER_ORDER, default=None, return_dtype=pl.Int8).alias("tier_order"),
+    )
 
     # One row per player: grade, games and dud/boom rates for this season.
     # A blank grade means under 4 games; spelled out so it's a real category in Power BI.
