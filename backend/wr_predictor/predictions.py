@@ -153,6 +153,39 @@ def build_review(log: pl.DataFrame, actuals: pl.DataFrame) -> pl.DataFrame:
     return joined.select("week", "player_name", "team", "opponent_team", "season_points", *stat_columns)
 
 
+def build_player_history(
+    live: pl.DataFrame, replay: pl.DataFrame, actuals: pl.DataFrame, weeks: list[int], player_ids: list[str]
+) -> dict[str, list[dict]]:
+    """
+    Each player's projected vs actual PPR points, one entry per finished week, keyed by
+    player_id. Live predictions win over a replay of the same week; the replay fills
+    weeks before live logging began and is flagged so it's never mistaken for live.
+    `weeks` should be finished weeks only, so a blank actual means the player didn't play.
+    """
+    # Tag each source, then drop replay rows that a live prediction already covers.
+    live = live.select(*LOG_KEY, f"pred_{POINTS_STAT}").with_columns(pl.lit(False).alias("replay"))
+    replay = replay.select(*LOG_KEY, f"pred_{POINTS_STAT}").with_columns(pl.lit(True).alias("replay"))
+    rows = (
+        pl.concat([live, replay.join(live, on=LOG_KEY, how="anti")])
+        .filter(pl.col("week").is_in(weeks) & pl.col("player_id").is_in(player_ids))
+        .join(actuals.select(*LOG_KEY, POINTS_STAT), on=LOG_KEY, how="left")
+        .sort("player_id", "week")
+        .select(
+            "player_id",
+            "week",
+            pl.col(f"pred_{POINTS_STAT}").round(2).alias("projected"),
+            pl.col(POINTS_STAT).round(2).alias("actual"),
+            # Positive means the player beat the projection, matching the review table.
+            (pl.col(POINTS_STAT) - pl.col(f"pred_{POINTS_STAT}")).round(2).alias("diff"),
+            "replay",
+        )
+    )
+    history: dict[str, list[dict]] = {}
+    for row in rows.iter_rows(named=True):
+        history.setdefault(row.pop("player_id"), []).append(row)
+    return history
+
+
 def score_predictions(log: pl.DataFrame, actuals: pl.DataFrame) -> list[dict]:
     """
     Score each week's top players against actual results, one dict per week.

@@ -214,3 +214,24 @@ def test_score_predictions_scores_top_players_only_and_counts_who_played(monkeyp
     assert score["ppr_points_baseline_mae"] == 4.0
     assert score["rank_correlation"] == 1.0
     assert score["baseline_rank_correlation"] is not None
+
+
+def test_build_player_history_prefers_live_flags_replay_and_keeps_missed_games() -> None:
+    def log(weeks: list[int], points: list[float]) -> pl.DataFrame:
+        return pl.DataFrame({"season": [2026] * len(weeks), "week": weeks, "player_id": ["A"] * len(weeks), "pred_ppr_points": points})
+
+    live = log([8, 9], [20.0, 15.0])
+    # Replay covers weeks 7-8 and a week 10 that hasn't finished.
+    replay = log([7, 8, 10], [10.0, 99.0, 5.0])
+    actuals = pl.DataFrame({"season": [2026, 2026], "week": [7, 8], "player_id": ["A", "A"], "ppr_points": [12.5, 18.0]})
+
+    history = predictions.build_player_history(live, replay, actuals, [7, 8, 9], ["A", "Z"])
+
+    # Week 8 uses live, not the replay's 99; week 9 has no actual because A didn't play; week 10 isn't finished.
+    assert history == {
+        "A": [
+            {"week": 7, "projected": 10.0, "actual": 12.5, "diff": 2.5, "replay": True},
+            {"week": 8, "projected": 20.0, "actual": 18.0, "diff": -2.0, "replay": False},
+            {"week": 9, "projected": 15.0, "actual": None, "diff": None, "replay": False},
+        ]
+    }
