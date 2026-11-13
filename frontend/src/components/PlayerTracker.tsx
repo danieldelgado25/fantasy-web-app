@@ -20,6 +20,10 @@ interface PlayerTrackerProps {
 const REPLAY_NOTE =
   "Re-run after the fact using only games before that week. Only live predictions were saved before kickoff.";
 
+/** Why week 1 has no projection, shown under the table and on the placeholder row. */
+const WEEK_ONE_NOTE =
+  "Week 1 isn't projected: no games had been played this season, so every input would come from last season. Rookies have no history, and players who changed teams would be judged on their old role.";
+
 /** Formats points to one decimal, or a dash when there's no value. */
 function points(value: number | null): string {
   return value === null ? "–" : value.toFixed(1);
@@ -74,6 +78,16 @@ export function PlayerTracker({ weeks, reliability }: PlayerTrackerProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
+            {/* Placeholder so the season visibly starts at week 1, with dashes instead of numbers. */}
+            {!weeks.some((w) => w.week === 1) && (
+              <TableRow title={WEEK_ONE_NOTE} className="text-muted-foreground">
+                <TableCell>1</TableCell>
+                <TableCell className="text-right">–</TableCell>
+                <TableCell className="text-right">–</TableCell>
+                <TableCell className="text-right">–</TableCell>
+                <TableCell />
+              </TableRow>
+            )}
             {weeks.map((w) => (
               <TableRow key={w.week}>
                 <TableCell className="space-x-2">
@@ -103,6 +117,9 @@ export function PlayerTracker({ weeks, reliability }: PlayerTrackerProps) {
             ))}
           </TableBody>
         </Table>
+      )}
+      {weeks.length > 0 && !weeks.some((w) => w.week === 1) && (
+        <p className="mt-3 text-xs text-muted-foreground">{WEEK_ONE_NOTE}</p>
       )}
     </details>
   );

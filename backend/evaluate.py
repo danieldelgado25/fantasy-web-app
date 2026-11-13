@@ -117,7 +117,8 @@ def main() -> None:
 
     if "--replay" in sys.argv:
         played_weeks = stats.filter((pl.col("season") == season) & (pl.col("season_type") == "REG"))["week"].unique().sort().to_list()
-        # Week 1 has no games from this season to rank players by, so replays start at week 2.
+        # Replays start at week 2. Week 1 could be ranked by last season's points, but every input
+        # would be months old: rookies have no history and players who changed teams keep their old role.
         rows = [replay_week(seasons, season, week, stats, regular) for week in played_weeks if week >= 2]
         os.makedirs(PREDICTIONS_DIR, exist_ok=True)
         pl.concat(rows).sort("season", "week", "player_id").write_csv(replay_path)
