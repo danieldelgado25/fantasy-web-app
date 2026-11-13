@@ -243,3 +243,22 @@ def test_game_tier_uses_each_floor_inclusively_and_skips_missed_games() -> None:
     tiers = points.select(predictions.game_tier(pl.col("p")).alias("tier"))["tier"].to_list()
 
     assert tiers == [None, "Dud", "Dud", "Low", "Solid", "Strong", "Boom", "NUCLEAR", "NUCLEAR"]
+
+
+def test_reliability_summary_grades_top_players_and_flags_volume_held_duds(monkeypatch) -> None:
+    monkeypatch.setattr(predictions, "RELEVANT_WRS", 1)
+    games = pl.DataFrame(
+        {
+            # A: 3 of 4 at 10+ (75%, a B), one dud on 9 targets, above A's 7.5 average.
+            # B: 4 games, but ranks below A, so off the radar. C: too few games to grade.
+            "player_id": ["A"] * 4 + ["B"] * 4 + ["C"] * 3,
+            "fantasy_points_ppr": [12.0, 25.0, 15.0, 2.0] + [10.0] * 4 + [30.0] * 3,
+            "targets": [6, 8, 7, 9] + [5] * 4 + [10] * 3,
+        }
+    )
+
+    summary = predictions.reliability_summary(games)
+
+    assert summary["A"] == {"grade": "B", "games": 4, "games_10_plus": 3, "dud_rate": 0.25, "boom_rate": 0.25, "volume_held_duds": 1}
+    assert summary["B"]["grade"] == "Off the radar"
+    assert summary["C"]["grade"] is None

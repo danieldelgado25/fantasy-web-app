@@ -41,6 +41,64 @@ FIRST_LIVE_WEEK = {2026: 9}
 GAME_TIERS = [(30.0, "NUCLEAR"), (20.0, "Boom"), (15.0, "Strong"), (10.0, "Solid"), (5.0, "Low")]
 
 
+# Reliability grade: share of a player's games at GRADE_FLOOR or more points. Cutoffs are
+# percentiles of fantasy-relevant player-seasons, 2023-2025: A top 10%, B median, C 25th, D 10th.
+GRADE_FLOOR = 10.0
+GRADE_CUTOFFS = [(0.83, "A"), (0.69, "B"), (0.59, "C"), (0.50, "D")]
+
+# Fewer games than this get no grade: one bad week would swing it too far.
+MIN_GRADED_GAMES = 4
+
+# Only this season's top WRs by points per game are graded, matching how the cutoffs were
+# set. Everyone else with enough games is "Off the radar" rather than an automatic F.
+RELEVANT_WRS = 36
+
+# A game at this many points or more counts as a boom (the Boom and NUCLEAR tiers).
+BOOM_FLOOR = 20.0
+
+
+def reliability_summary(games: pl.DataFrame) -> dict[str, dict]:
+    """
+    One summary per player from `games`: one row per regular-season game this season, with
+    player_id, fantasy_points_ppr and targets. A dud where targets were at or above the
+    player's season average is "volume held": the role was there, the points weren't.
+    """
+    points = pl.col("fantasy_points_ppr")
+    per_player = (
+        games.group_by("player_id")
+        .agg(
+            pl.len().alias("games"),
+            (points >= GRADE_FLOOR).sum().alias("games_10_plus"),
+            (points < GAME_TIERS[-1][0]).mean().round(3).alias("dud_rate"),
+            (points >= BOOM_FLOOR).mean().round(3).alias("boom_rate"),
+            ((points < GAME_TIERS[-1][0]) & (pl.col("targets") >= pl.col("targets").mean())).sum().alias("volume_held_duds"),
+            points.mean().alias("ppg"),
+        )
+        # Sorting by player_id first makes tied ranks repeatable.
+        .sort("player_id")
+        .with_columns(
+            pl.when(pl.col("games") >= MIN_GRADED_GAMES)
+            .then(pl.col("ppg"))
+            .rank(method="ordinal", descending=True)
+            .alias("ppg_rank")
+        )
+    )
+    summaries = {}
+    for row in per_player.iter_rows(named=True):
+        rate = row["games_10_plus"] / row["games"]
+        if row["games"] < MIN_GRADED_GAMES:
+            grade = None
+        elif row["ppg_rank"] > RELEVANT_WRS:
+            grade = "Off the radar"
+        else:
+            grade = next((letter for cutoff, letter in GRADE_CUTOFFS if rate >= cutoff), "F")
+        summaries[row["player_id"]] = {
+            "grade": grade,
+            **{key: row[key] for key in ("games", "games_10_plus", "dud_rate", "boom_rate", "volume_held_duds")},
+        }
+    return summaries
+
+
 def game_tier(points: pl.Expr) -> pl.Expr:
     """Each game's tier name from its PPR points. Null points (didn't play) give a null tier."""
     tier = pl.when(points.is_null()).then(None)
