@@ -80,7 +80,10 @@ function Index() {
 
       {/* Hidden until a player is picked and the history file has loaded. */}
       {selectedProjection && historyQuery.data && (
-        <PlayerTracker weeks={historyQuery.data.players[selectedProjection.player_id] ?? []} />
+        <PlayerTracker
+          weeks={historyQuery.data.players[selectedProjection.player_id] ?? []}
+          reliability={historyQuery.data.reliability[selectedProjection.player_id] ?? null}
+        />
       )}
 
       {topPlayers.length > 0 && (

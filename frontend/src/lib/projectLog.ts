@@ -21,6 +21,13 @@ export const REPOSITORY_URL = "https://github.com/danieldelgado25/fantasy-web-ap
 export const PROJECT_LOG: ProjectLogEntry[] = [
   {
     date: "2026-11-13",
+    title: "Added game tiers and a reliability grade",
+    why: "A season average hides how often a receiver actually delivers, and that's what decides whether to start him.",
+    result:
+      "Each tracked game is tagged Dud (under 5 PPR) through NUCLEAR (30+). This season's top 36 receivers get a grade from their share of games at 10+ points, e.g. B (7 of 9 games), with cutoffs set from 2023-2025. Others show Off the radar, and fewer than 4 games gets no grade.",
+  },
+  {
+    date: "2026-11-13",
     title: "Added each player's prediction history",
     why: "Season-level accuracy covers only the top 20 each week, so there was no way to see how the model has done for one particular receiver.",
     result:

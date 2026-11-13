@@ -163,8 +163,24 @@ export interface PlayerHistoryWeek {
   actual: number | null;
   /** Actual minus projected; positive means the player beat the projection. Null with no actual. */
   diff: number | null;
+  /** PPR tier: Dud (<5), Low, Solid, Strong, Boom or NUCLEAR (30+). Null when the player didn't play. */
+  tier: "Dud" | "Low" | "Solid" | "Strong" | "Boom" | "NUCLEAR" | null;
   /** True when the week was regenerated after the fact, not logged before kickoff. */
   replay: boolean;
+}
+
+/** A player's reliability this season, from every regular-season game they played. */
+export interface PlayerReliability {
+  /** A-F for this season's top 36 WRs, "Off the radar" for the rest, null under 4 games. */
+  grade: string | null;
+  games: number;
+  games_10_plus: number;
+  /** Share of games under 5 points. */
+  dud_rate: number;
+  /** Share of games at 20 points or more. */
+  boom_rate: number;
+  /** Duds where targets were at or above the player's season average. */
+  volume_held_duds: number;
 }
 
 /** The player history file the daily job publishes, keyed by player_id. */
@@ -172,6 +188,7 @@ export interface PlayerHistoryFile {
   generated_at: string;
   season: number;
   players: Record<string, PlayerHistoryWeek[]>;
+  reliability: Record<string, PlayerReliability>;
 }
 
 /** Location of the published player history, served from frontend/public. */
