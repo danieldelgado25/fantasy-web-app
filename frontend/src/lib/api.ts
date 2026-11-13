@@ -154,3 +154,34 @@ export async function fetchInjuryNews(): Promise<InjuryNewsFile> {
   }
   return response.json();
 }
+
+/** One finished week of a player's projected vs actual PPR points, as written by backend/evaluate.py. */
+export interface PlayerHistoryWeek {
+  week: number;
+  projected: number;
+  /** Null when the player didn't play that week. */
+  actual: number | null;
+  /** Actual minus projected; positive means the player beat the projection. Null with no actual. */
+  diff: number | null;
+  /** True when the week was regenerated after the fact, not logged before kickoff. */
+  replay: boolean;
+}
+
+/** The player history file the daily job publishes, keyed by player_id. */
+export interface PlayerHistoryFile {
+  generated_at: string;
+  season: number;
+  players: Record<string, PlayerHistoryWeek[]>;
+}
+
+/** Location of the published player history, served from frontend/public. */
+const PLAYER_HISTORY_URL = "/data/player_history.json";
+
+/** Loads every player's weekly history. Throws so the page can show the failure. */
+export async function fetchPlayerHistory(): Promise<PlayerHistoryFile> {
+  const response = await fetch(PLAYER_HISTORY_URL);
+  if (!response.ok) {
+    throw new Error(`Failed to load player history: ${response.status}`);
+  }
+  return response.json();
+}
