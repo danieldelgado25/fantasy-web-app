@@ -219,3 +219,5 @@ frontend/dist/
 
 # OS files
 .DS_Store
+# Power BI CSVs written by backend/export_powerbi.py; regenerate instead of committing.
+backend/exports/
