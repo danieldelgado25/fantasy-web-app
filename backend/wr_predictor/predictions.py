@@ -35,6 +35,77 @@ LOG_KEY = ["season", "week", "player_id"]
 # Seasons not listed start at week 1.
 FIRST_LIVE_WEEK = {2026: 9}
 
+# A game's PPR tier, as (lowest points, name), highest first; under 5 points is a "Dud".
+# Share of games for fantasy-relevant WRs (each season's top 36 by points per game, 8+ games),
+# 2023-2025: Dud 10%, Low 22%, Solid 22%, Strong 20%, Boom 20%, NUCLEAR 5.5%.
+GAME_TIERS = [(30.0, "NUCLEAR"), (20.0, "Boom"), (15.0, "Strong"), (10.0, "Solid"), (5.0, "Low")]
+
+
+# Reliability grade: share of a player's games at GRADE_FLOOR or more points. Cutoffs are
+# percentiles of fantasy-relevant player-seasons, 2023-2025: A top 10%, B median, C 25th, D 10th.
+GRADE_FLOOR = 10.0
+GRADE_CUTOFFS = [(0.83, "A"), (0.69, "B"), (0.59, "C"), (0.50, "D")]
+
+# Fewer games than this get no grade: one bad week would swing it too far.
+MIN_GRADED_GAMES = 4
+
+# Only this season's top WRs by points per game are graded, matching how the cutoffs were
+# set. Everyone else with enough games is "Off the radar" rather than an automatic F.
+RELEVANT_WRS = 36
+
+# A game at this many points or more counts as a boom (the Boom and NUCLEAR tiers).
+BOOM_FLOOR = 20.0
+
+
+def reliability_summary(games: pl.DataFrame) -> dict[str, dict]:
+    """
+    One summary per player from `games`: one row per regular-season game this season, with
+    player_id, fantasy_points_ppr and targets. A dud where targets were at or above the
+    player's season average is "volume held": the role was there, the points weren't.
+    """
+    points = pl.col("fantasy_points_ppr")
+    per_player = (
+        games.group_by("player_id")
+        .agg(
+            pl.len().alias("games"),
+            (points >= GRADE_FLOOR).sum().alias("games_10_plus"),
+            (points < GAME_TIERS[-1][0]).mean().round(3).alias("dud_rate"),
+            (points >= BOOM_FLOOR).mean().round(3).alias("boom_rate"),
+            ((points < GAME_TIERS[-1][0]) & (pl.col("targets") >= pl.col("targets").mean())).sum().alias("volume_held_duds"),
+            points.mean().alias("ppg"),
+        )
+        # Sorting by player_id first makes tied ranks repeatable.
+        .sort("player_id")
+        .with_columns(
+            pl.when(pl.col("games") >= MIN_GRADED_GAMES)
+            .then(pl.col("ppg"))
+            .rank(method="ordinal", descending=True)
+            .alias("ppg_rank")
+        )
+    )
+    summaries = {}
+    for row in per_player.iter_rows(named=True):
+        rate = row["games_10_plus"] / row["games"]
+        if row["games"] < MIN_GRADED_GAMES:
+            grade = None
+        elif row["ppg_rank"] > RELEVANT_WRS:
+            grade = "Off the radar"
+        else:
+            grade = next((letter for cutoff, letter in GRADE_CUTOFFS if rate >= cutoff), "F")
+        summaries[row["player_id"]] = {
+            "grade": grade,
+            **{key: row[key] for key in ("games", "games_10_plus", "dud_rate", "boom_rate", "volume_held_duds")},
+        }
+    return summaries
+
+
+def game_tier(points: pl.Expr) -> pl.Expr:
+    """Each game's tier name from its PPR points. Null points (didn't play) give a null tier."""
+    tier = pl.when(points.is_null()).then(None)
+    for floor, name in GAME_TIERS:
+        tier = tier.when(points >= floor).then(pl.lit(name))
+    return tier.otherwise(pl.lit("Dud"))
+
 
 def live_weeks_only(log: pl.DataFrame, season: int) -> pl.DataFrame:
     """Drop logged weeks before live tracking fully began, so they're never scored or shown."""
@@ -151,6 +222,40 @@ def build_review(log: pl.DataFrame, actuals: pl.DataFrame) -> pl.DataFrame:
             (pl.col(stat) - pl.col(f"pred_{stat}")).round(2).alias(f"diff_{stat}"),
         ]
     return joined.select("week", "player_name", "team", "opponent_team", "season_points", *stat_columns)
+
+
+def build_player_history(
+    live: pl.DataFrame, replay: pl.DataFrame, actuals: pl.DataFrame, weeks: list[int], player_ids: list[str]
+) -> dict[str, list[dict]]:
+    """
+    Each player's projected vs actual PPR points, one entry per finished week, keyed by
+    player_id. Live predictions win over a replay of the same week; the replay fills
+    weeks before live logging began and is flagged so it's never mistaken for live.
+    `weeks` should be finished weeks only, so a blank actual means the player didn't play.
+    """
+    # Tag each source, then drop replay rows that a live prediction already covers.
+    live = live.select(*LOG_KEY, f"pred_{POINTS_STAT}").with_columns(pl.lit(False).alias("replay"))
+    replay = replay.select(*LOG_KEY, f"pred_{POINTS_STAT}").with_columns(pl.lit(True).alias("replay"))
+    rows = (
+        pl.concat([live, replay.join(live, on=LOG_KEY, how="anti")])
+        .filter(pl.col("week").is_in(weeks) & pl.col("player_id").is_in(player_ids))
+        .join(actuals.select(*LOG_KEY, POINTS_STAT), on=LOG_KEY, how="left")
+        .sort("player_id", "week")
+        .select(
+            "player_id",
+            "week",
+            pl.col(f"pred_{POINTS_STAT}").round(2).alias("projected"),
+            pl.col(POINTS_STAT).round(2).alias("actual"),
+            # Positive means the player beat the projection, matching the review table.
+            (pl.col(POINTS_STAT) - pl.col(f"pred_{POINTS_STAT}")).round(2).alias("diff"),
+            game_tier(pl.col(POINTS_STAT)).alias("tier"),
+            "replay",
+        )
+    )
+    history: dict[str, list[dict]] = {}
+    for row in rows.iter_rows(named=True):
+        history.setdefault(row.pop("player_id"), []).append(row)
+    return history
 
 
 def score_predictions(log: pl.DataFrame, actuals: pl.DataFrame) -> list[dict]:

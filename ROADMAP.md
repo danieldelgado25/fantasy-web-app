@@ -92,6 +92,17 @@ Done when: anyone can open the link and see this week's projections.
 ### After launch
 Roster-based pivots, more positions and the player news monitor, all described below.
 
+### Player prediction tracker
+- [x] Publish each player's weekly projected vs actual points (`frontend/public/data/player_history.json`, written by `evaluate.py`). Live predictions win over a replay of the same week; replay weeks (2-8 in 2026) are flagged
+- [x] Show it under the selected player's projection, collapsed by default, with a Replay tag
+- [ ] Widen it from players in `projections.json` to every logged player. Kept small for now (about 85 KB vs an estimated 200 KB)
+- [x] Add a reliability grade per player (dud and boom rates, e.g. "B (7 of 9 games at 10+)"), with cutoffs set from 2023-2025
+  - Tiers by PPR: Dud under 5, Low 5-10, Solid 10-15, Strong 15-20, Boom 20-30, NUCLEAR 30+
+  - Grade is the share of games at 10+: A 83%+, B 69%+, C 59%+, D 50%+, else F (2023-2025 percentiles of each season's top 36 WRs by points per game, 8+ games)
+  - Only this season's top 36 are graded; others show "Off the radar", and under 4 games gets no grade
+
+Done when: picking any player shows their weekly history, and the daily job updates it on its own.
+
 ## When something fails
 
 - **CI fails:** open the run from the commit's red X. For the backend, run `python -m pytest` from `backend/`. For the frontend, run `bun run lint`, `bunx tsc --noEmit` and `bun run build` from `frontend/`. Fix it on the branch and don't merge until it's green.

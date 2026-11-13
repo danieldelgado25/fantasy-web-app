@@ -4,9 +4,10 @@ import { useState } from "react";
 
 import { Intro } from "@/components/Intro";
 import { PlayerSearch } from "@/components/PlayerSearch";
+import { PlayerTracker } from "@/components/PlayerTracker";
 import { ProjectionPanel } from "@/components/ProjectionPanel";
 import { TopPlayersTable } from "@/components/TopPlayersTable";
-import { fetchAccuracy, fetchProjections, type Player } from "@/lib/api";
+import { fetchAccuracy, fetchPlayerHistory, fetchProjections, type Player } from "@/lib/api";
 
 /** How many top-ranked players the table lists. Search reaches everyone else. */
 const TOP_PLAYERS_SHOWN = 20;
@@ -44,6 +45,12 @@ function Index() {
     queryFn: fetchAccuracy,
   });
 
+  // Weekly projected vs actual points, shown under the selected player's projection.
+  const historyQuery = useQuery({
+    queryKey: ["player-history"],
+    queryFn: fetchPlayerHistory,
+  });
+
   const players = projectionsQuery.data?.players ?? [];
   const topPlayers = players.filter((p) => p.rank <= TOP_PLAYERS_SHOWN);
   const selectedProjection = players.find((p) => p.player_id === selectedPlayer?.player_id) ?? null;
@@ -70,6 +77,14 @@ function Index() {
         isLoading={projectionsQuery.isLoading}
         error={projectionsQuery.error as Error | null}
       />
+
+      {/* Hidden until a player is picked and the history file has loaded. */}
+      {selectedProjection && historyQuery.data && (
+        <PlayerTracker
+          weeks={historyQuery.data.players[selectedProjection.player_id] ?? []}
+          reliability={historyQuery.data.reliability[selectedProjection.player_id] ?? null}
+        />
+      )}
 
       {topPlayers.length > 0 && (
         <section className="space-y-2">
