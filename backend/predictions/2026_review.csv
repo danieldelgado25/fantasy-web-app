@@ -20,10 +20,10 @@ week,player_name,team,opponent_team,season_points,pred_targets,actual_targets,di
 9,Tre Tucker,LV,SF,99.8,5.52,8,2.48,3.33,4,0.67,9.39,9.5,0.11
 9,Parker Washington,JAX,BAL,95.5,5.49,7,1.51,3.43,2,-1.43,10.56,14.1,3.54
 10,Jaxon Smith-Njigba,SEA,LV,232.06,10.63,,,6.92,,,19.79,,
-10,CeeDee Lamb,DAL,SF,201.8,10.27,,,6.73,,,18.39,,
-10,Christian Watson,GB,MIN,176.9,8.13,,,4.98,,,14.91,,
+10,CeeDee Lamb,DAL,SF,201.8,10.28,,,6.72,,,18.34,,
+10,Christian Watson,GB,MIN,176.9,8.15,,,4.99,,,14.97,,
 10,Puka Nacua,LA,ARI,173.6,12.82,,,8.95,,,22.52,,
-10,Matthew Golden,GB,MIN,163.9,9.67,,,6.12,,,17.49,,
+10,Matthew Golden,GB,MIN,163.9,9.68,,,6.13,,,17.55,,
 10,Tee Higgins,CIN,PIT,159.8,8.35,,,5.47,,,15.99,,
 10,Ja'Marr Chase,CIN,PIT,159.7,9.62,,,6.4,,,18.5,,
 10,Amon-Ra St. Brown,DET,NE,157.6,9.62,,,6.73,,,18.3,,
@@ -37,7 +37,7 @@ week,player_name,team,opponent_team,season_points,pred_targets,actual_targets,di
 10,Parker Washington,JAX,TEN,109.6,5.75,,,3.55,,,10.86,,
 10,Tre Tucker,LV,SEA,109.3,6.29,,,3.58,,,10.16,,
 10,Jameson Williams,DET,NE,105.7,6.24,,,3.73,,,11.81,,
-10,George Pickens,DAL,SF,104.3,6.64,,,4.14,,,12.14,,
+10,George Pickens,DAL,SF,104.3,6.65,,,4.14,,,12.09,,
 10,Denzel Boston,CLE,HOU,102.7,6.86,,,4.02,,,11.33,,
 11,Malik Nabers,NYG,JAX,137.2,9.31,,,6.07,,,15.84,,
 11,Luther Burden III,CHI,NO,136.3,7.22,,,5.14,,,14.41,,
