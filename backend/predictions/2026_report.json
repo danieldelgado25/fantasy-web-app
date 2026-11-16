@@ -37,10 +37,31 @@
       {
         "week": 10,
         "predicted": 20,
-        "played": 1
+        "played": 17,
+        "targets_mae": 3.7364705882352935,
+        "targets_baseline_mae": 3.8047058823529416,
+        "rec_mae": 2.2758823529411765,
+        "rec_baseline_mae": 2.707058823529412,
+        "rec_yds_mae": 46.441764705882356,
+        "rec_yds_baseline_mae": 51.765882352941176,
+        "rec_td_mae": 0.6347058823529412,
+        "rec_td_baseline_mae": 0.6858823529411765,
+        "carries_mae": 0.1452941176470588,
+        "carries_baseline_mae": 0.11764705882352941,
+        "rushing_yards_mae": 0.8770588235294118,
+        "rushing_yards_baseline_mae": 0.8035294117647059,
+        "ppr_points_mae": 9.26705882352941,
+        "ppr_points_baseline_mae": 10.386470588235296,
+        "rank_correlation": 0.4215686274509804,
+        "baseline_rank_correlation": 0.27450980392156865
       },
       {
         "week": 11,
+        "predicted": 20,
+        "played": 0
+      },
+      {
+        "week": 12,
         "predicted": 20,
         "played": 0
       }
