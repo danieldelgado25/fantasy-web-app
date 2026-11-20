@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-19T17:22:40+00:00",
+ "generated_at": "2026-11-20T16:57:58+00:00",
  "players": [
   {
    "player_id": "00-0039849",
@@ -8,15 +8,6 @@
    "week": 11,
    "injury_status": "Out",
    "injury_note": "Out \u00b7 Did not practice \u00b7 Hamstring",
-   "first_seen": "2026-11-19T17:22:40+00:00"
-  },
-  {
-   "player_id": "00-0031408",
-   "player_name": "Mike Evans",
-   "team": "SF",
-   "week": 11,
-   "injury_status": "DNP",
-   "injury_note": "Did not practice \u00b7 Achilles",
    "first_seen": "2026-11-19T17:22:40+00:00"
   },
   {
@@ -182,9 +173,9 @@
    "first_seen": "2026-11-05T20:01:37+00:00"
   },
   {
-   "player_id": "00-0041047",
-   "player_name": "Chris Brazzell II",
-   "team": "CAR",
+   "player_id": "00-0041035",
+   "player_name": "De'Zhaun Stribling",
+   "team": "SF",
    "week": 11,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
@@ -194,6 +185,15 @@
    "player_id": "00-0034419",
    "player_name": "Braxton Berrios",
    "team": "NYG",
+   "week": 11,
+   "injury_status": "IR",
+   "injury_note": "On a reserve list (IR, PUP or similar)",
+   "first_seen": "2026-11-05T20:01:37+00:00"
+  },
+  {
+   "player_id": "00-0038640",
+   "player_name": "Jalen Brooks",
+   "team": "ARI",
    "week": 11,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
@@ -263,15 +263,6 @@
    "first_seen": "2026-11-05T20:01:37+00:00"
   },
   {
-   "player_id": "00-0041035",
-   "player_name": "De'Zhaun Stribling",
-   "team": "SF",
-   "week": 11,
-   "injury_status": "IR",
-   "injury_note": "On a reserve list (IR, PUP or similar)",
-   "first_seen": "2026-11-05T20:01:37+00:00"
-  },
-  {
    "player_id": "00-0039623",
    "player_name": "Mason Tipton",
    "team": "NO",
@@ -281,18 +272,18 @@
    "first_seen": "2026-11-05T20:01:37+00:00"
   },
   {
-   "player_id": "00-0041446",
-   "player_name": "Kendrick Law",
-   "team": "DET",
+   "player_id": "00-0041047",
+   "player_name": "Chris Brazzell II",
+   "team": "CAR",
    "week": 11,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
    "first_seen": "2026-11-05T20:01:37+00:00"
   },
   {
-   "player_id": "00-0038640",
-   "player_name": "Jalen Brooks",
-   "team": "ARI",
+   "player_id": "00-0041446",
+   "player_name": "Kendrick Law",
+   "team": "DET",
    "week": 11,
    "injury_status": "IR",
    "injury_note": "On a reserve list (IR, PUP or similar)",
