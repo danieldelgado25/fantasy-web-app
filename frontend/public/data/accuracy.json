@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-23T20:14:27+00:00",
+ "generated_at": "2026-11-24T19:30:28+00:00",
  "season": 2026,
  "top_n": 20,
  "live": {
@@ -21,10 +21,19 @@
     "baseline_mae": 9.83,
     "rank_correlation": 0.39,
     "baseline_rank_correlation": 0.29
+   },
+   {
+    "week": 11,
+    "predicted": 20,
+    "played": 20,
+    "mae": 5.99,
+    "baseline_mae": 7.51,
+    "rank_correlation": 0.26,
+    "baseline_rank_correlation": 0.08
    }
   ],
   "passed": false,
-  "reason": "needs 4 finished weeks, has 2"
+  "reason": "needs 4 finished weeks, has 3"
  },
  "replay": {
   "weeks": [
