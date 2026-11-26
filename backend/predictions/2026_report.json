@@ -81,6 +81,27 @@
       {
         "week": 12,
         "predicted": 20,
+        "played": 2,
+        "targets_mae": 4.08,
+        "targets_baseline_mae": 4.67,
+        "rec_mae": 2.945,
+        "rec_baseline_mae": 4.165,
+        "rec_yds_mae": 20.375000000000004,
+        "rec_yds_baseline_mae": 53.665,
+        "rec_td_mae": 0.56,
+        "rec_td_baseline_mae": 0.6699999999999999,
+        "carries_mae": 0.07500000000000001,
+        "carries_baseline_mae": 0.0,
+        "rushing_yards_mae": 0.09,
+        "rushing_yards_baseline_mae": 0.0,
+        "ppr_points_mae": 7.77,
+        "ppr_points_baseline_mae": 9.2,
+        "rank_correlation": -1.0,
+        "baseline_rank_correlation": -1.0
+      },
+      {
+        "week": 13,
+        "predicted": 9,
         "played": 0
       }
     ],
